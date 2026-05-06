@@ -1,0 +1,55 @@
+{
+  "": {
+    "dependencies": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/MacCleanerPro.d",
+    "object": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/MacCleanerPro.o",
+    "swift-dependencies": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/master.swiftdeps"
+  },
+  "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/Sources/AppModels.swift": {
+    "object": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/AppModels.swift.o",
+    "swiftmodule": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/AppModels~partial.swiftmodule",
+    "swift-dependencies": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/AppModels.swiftdeps",
+    "diagnostics": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/AppModels.dia"
+  },
+  "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/Sources/AppViewModel.swift": {
+    "object": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/AppViewModel.swift.o",
+    "swiftmodule": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/AppViewModel~partial.swiftmodule",
+    "swift-dependencies": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/AppViewModel.swiftdeps",
+    "diagnostics": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/AppViewModel.dia"
+  },
+  "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/Sources/CleanupService.swift": {
+    "object": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/CleanupService.swift.o",
+    "swiftmodule": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/CleanupService~partial.swiftmodule",
+    "swift-dependencies": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/CleanupService.swiftdeps",
+    "diagnostics": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/CleanupService.dia"
+  },
+  "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/Sources/ContentView.swift": {
+    "object": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/ContentView.swift.o",
+    "swiftmodule": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/ContentView~partial.swiftmodule",
+    "swift-dependencies": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/ContentView.swiftdeps",
+    "diagnostics": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/ContentView.dia"
+  },
+  "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/Sources/Localization.swift": {
+    "object": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/Localization.swift.o",
+    "swiftmodule": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/Localization~partial.swiftmodule",
+    "swift-dependencies": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/Localization.swiftdeps",
+    "diagnostics": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/Localization.dia"
+  },
+  "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/Sources/LocalizationRuntime.swift": {
+    "object": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/LocalizationRuntime.swift.o",
+    "swiftmodule": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/LocalizationRuntime~partial.swiftmodule",
+    "swift-dependencies": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/LocalizationRuntime.swiftdeps",
+    "diagnostics": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/LocalizationRuntime.dia"
+  },
+  "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/Sources/MacCleanerProApp.swift": {
+    "object": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/MacCleanerProApp.swift.o",
+    "swiftmodule": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/MacCleanerProApp~partial.swiftmodule",
+    "swift-dependencies": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/MacCleanerProApp.swiftdeps",
+    "diagnostics": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/MacCleanerProApp.dia"
+  },
+  "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/Sources/OnboardingView.swift": {
+    "object": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/OnboardingView.swift.o",
+    "swiftmodule": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/OnboardingView~partial.swiftmodule",
+    "swift-dependencies": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/OnboardingView.swiftdeps",
+    "diagnostics": "/Users/mertsert/projelerim/Mac Cleaner/MacCleanerPro/.build/arm64-apple-macosx/release/MacCleanerPro.build/OnboardingView.dia"
+  }
+}

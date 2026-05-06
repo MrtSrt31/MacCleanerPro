@@ -1,0 +1,1119 @@
+import Foundation
+
+enum AppLanguage: String, CaseIterable, Identifiable {
+    case english = "en"
+    case turkish = "tr"
+    case chineseSimplified = "zh-Hans"
+    case german = "de"
+    case japanese = "ja"
+    case hindi = "hi"
+    case french = "fr"
+    case portuguese = "pt-BR"
+    case italian = "it"
+    case russian = "ru"
+    case spanish = "es"
+    case korean = "ko"
+    case indonesian = "id"
+    case dutch = "nl"
+    case arabic = "ar"
+
+    var id: Self { self }
+
+    static var current: AppLanguage {
+        resolve(from: Locale.preferredLanguages.first)
+    }
+
+    static func resolve(from identifier: String?) -> AppLanguage {
+        let normalized = (identifier ?? "")
+            .replacingOccurrences(of: "_", with: "-")
+            .lowercased()
+
+        if normalized.hasPrefix("tr") {
+            return .turkish
+        }
+
+        if normalized.hasPrefix("en") {
+            return .english
+        }
+
+        if normalized.hasPrefix("zh-hans") || normalized.hasPrefix("zh-cn") || normalized == "zh" {
+            return .chineseSimplified
+        }
+
+        if normalized.hasPrefix("de") {
+            return .german
+        }
+
+        if normalized.hasPrefix("ja") {
+            return .japanese
+        }
+
+        if normalized.hasPrefix("hi") {
+            return .hindi
+        }
+
+        if normalized.hasPrefix("fr") {
+            return .french
+        }
+
+        if normalized.hasPrefix("pt") {
+            return .portuguese
+        }
+
+        if normalized.hasPrefix("it") {
+            return .italian
+        }
+
+        if normalized.hasPrefix("ru") {
+            return .russian
+        }
+
+        if normalized.hasPrefix("es") {
+            return .spanish
+        }
+
+        if normalized.hasPrefix("ko") {
+            return .korean
+        }
+
+        if normalized.hasPrefix("id") {
+            return .indonesian
+        }
+
+        if normalized.hasPrefix("nl") {
+            return .dutch
+        }
+
+        if normalized.hasPrefix("ar") {
+            return .arabic
+        }
+
+        // If the device primary language is not in the requested supported-language set,
+        // fall back to English automatically.
+        return .english
+    }
+
+    var localeIdentifier: String {
+        rawValue
+    }
+
+    var locale: Locale {
+        Locale(identifier: localeIdentifier)
+    }
+
+    var isRightToLeft: Bool {
+        self == .arabic
+    }
+}
+
+enum L10n {
+    static var language: AppLanguage {
+        LocalizationController.shared.effectiveLanguage
+    }
+
+    static var locale: Locale {
+        LocalizationController.shared.locale
+    }
+
+    static func tr(_ base: String) -> String {
+        if language == .turkish {
+            return base
+        }
+
+        return LanguagePack.pack(for: language)[base]
+            ?? LanguagePack.pack(for: .english)[base]
+            ?? base
+    }
+
+    static func format(_ base: String, _ args: CVarArg...) -> String {
+        format(base, arguments: args)
+    }
+
+    static func format(_ base: String, arguments: [CVarArg]) -> String {
+        String(format: tr(base), locale: locale, arguments: arguments)
+    }
+}
+
+private enum LanguagePack {
+    static func pack(for language: AppLanguage) -> [String: String] {
+        switch language {
+        case .english:
+            return english
+        case .turkish:
+            return [:]
+        case .chineseSimplified:
+            return chineseSimplified
+        case .german:
+            return german
+        case .japanese:
+            return japanese
+        case .hindi:
+            return hindi
+        case .french:
+            return french
+        case .portuguese:
+            return portuguese
+        case .italian:
+            return italian
+        case .russian:
+            return russian
+        case .spanish:
+            return spanish
+        case .korean:
+            return korean
+        case .indonesian:
+            return indonesian
+        case .dutch:
+            return dutch
+        case .arabic:
+            return arabic
+        }
+    }
+
+    private static let english: [String: String] = [
+        "Kontrol Merkezi": "Control Center",
+        "Temizlik Planı": "Cleanup Plan",
+        "Otomasyon": "Automation",
+        "Raporlar": "Reports",
+        "Gerçek sistem klasörlerini tarar, alan kazanımını hesaplar ve seçilebilir görevler üretir.": "Scans real system folders, measures reclaimable space, and builds selectable cleanup tasks.",
+        "Seçili görevlerin etkisini, hedef boş alanı ve geri dönüş kayıtlarını birlikte gösterir.": "Shows the impact of selected tasks, projected free space, and recovery records together.",
+        "Bakım ritmini ve disk eşiği tercihlerini yerel ayarlar olarak saklar.": "Stores maintenance cadence and disk-threshold preferences as local settings.",
+        "Tarama özetini dışa aktarır ve çalışma geçmişini okunur rapor kartlarına dönüştürür.": "Exports the scan summary and turns activity history into readable report cards.",
+        "Guvenli": "Safe",
+        "Inceleme": "Review",
+        "Manuel": "Manual",
+        "Kullanici Cache": "User Cache",
+        "Log ve Crash Arsivleri": "Log and Crash Archives",
+        "Xcode DerivedData": "Xcode DerivedData",
+        "Device Support ve Simulator Cache": "Device Support and Simulator Cache",
+        "Mail Indirmeleri": "Mail Downloads",
+        "iOS Finder Yedekleri": "iOS Finder Backups",
+        "Buyuk Download Dosyalari": "Large Download Files",
+        "Docker Sistem Verisi": "Docker System Data",
+        "Library icindeki cache klasorleri ve container cache katmanlari.": "Cache folders in Library plus container cache layers.",
+        "Tanilama loglari, crash raporlari ve eski run kayitlari.": "Diagnostic logs, crash reports, and stale run records.",
+        "Build artıkları, indeksler ve gecici Xcode derleme urunleri.": "Build artifacts, indexes, and temporary Xcode build products.",
+        "Xcode cihaz destek paketleri ve CoreSimulator cache dosyalari.": "Xcode device-support packages and CoreSimulator cache files.",
+        "Apple Mail tarafindan lokal diske indirilen ek klasorleri.": "Attachment folders downloaded locally by Apple Mail.",
+        "Finder icinde biriken iPhone ve iPad yedek klasorleri.": "Accumulated iPhone and iPad backup folders used by Finder.",
+        "Downloads altinda buyuk ve eski dosyalar.": "Large and old files under Downloads.",
+        "Docker CLI varsa reclaimable alan taranir ve prune komutu calistirilabilir.": "Scans reclaimable Docker space when the Docker CLI is available and can run prune.",
+        "Docker reclaimable alan bulunmadi veya Docker CLI erisilebilir degil.": "No reclaimable Docker space was found or the Docker CLI is not available.",
+        "Esik kosullarini asan buyuk ve eski dosya bulunmadi.": "No large, old files matched the current threshold.",
+        "Bu kategori icin temizlenebilir icerik bulunmadi.": "No cleanable content was found for this category.",
+        "Gunluk": "Daily",
+        "Haftalik": "Weekly",
+        "Aylik": "Monthly",
+        "Siklik yuksek, sistem her gun kisa taranir.": "High frequency; the system runs a short scan every day.",
+        "Dengeli bakim ritmi.": "Balanced maintenance cadence.",
+        "Daha sakin, arsiv agirlikli bakim.": "A calmer, archive-focused maintenance plan.",
+        "Hazir": "Ready",
+        "Gercek sistem verisini taramaya hazir.": "Ready to scan real system data.",
+        "Native macOS uygulama hazirlandi. Ilk tarama bekleniyor.": "The native macOS app is ready. Waiting for the first scan.",
+        "Guvenli mod acik. Varsayilan olarak dusuk riskli kategoriler secili gelecek.": "Safe mode is on. Low-risk categories will be selected by default.",
+        "Temizlik calisiyor": "Cleanup in progress",
+        "Tarama calisiyor": "Scan in progress",
+        "Henuz taranmadi": "Not scanned yet",
+        "Tam guvenli": "Fully safe",
+        "Dengeli": "Balanced",
+        "Onay gerekiyor": "Needs review",
+        "Bu kurulum %@ secili alan hedefliyor. Guvenlik profili %@ ve derin tarama %@. Temizlik oncesi snapshot manifesti %@. Bir sonraki planli bakim %@ olarak hesaplandi.": "This setup targets %@ of selected cleanup. The safety profile is %@ and deep scan is %@. The pre-cleanup snapshot manifest is %@. The next scheduled maintenance is %@.",
+        "acik": "on",
+        "kapali": "off",
+        "olusturuluyor": "enabled",
+        "olusturulmuyor": "disabled",
+        "Tarama hazirlaniyor": "Preparing scan",
+        "Gercek sistem klasorleri okunacak.": "Real system folders will be scanned.",
+        "Akilli tarama baslatildi.": "Smart scan started.",
+        "Tarama basarisiz": "Scan failed",
+        "Tarama hatasi: %@": "Scan error: %@",
+        "Tarama tamamlanamadi.": "The scan could not be completed.",
+        "Temizlenecek secili oge yok.": "There are no selected items to clean.",
+        "Temizlik basladi": "Cleanup started",
+        "Secili ogeler Cop Kutusu ve komut katmani ile temizlenecek.": "Selected items will be cleaned through Trash and command-based actions.",
+        "%@ kategori icin temizlik akisi baslatildi.": "Cleanup flow started for %@ categories.",
+        "Temizlik hatasi: %@": "Cleanup error: %@",
+        "Temizlik akisi durdu.": "Cleanup flow stopped.",
+        "Rapor disa aktarildi: %@": "Report exported: %@",
+        "Rapor olusturuldu.": "Report created.",
+        "Rapor yazilamadi: %@": "Report could not be written: %@",
+        "Rapor yazilamadi.": "The report could not be written.",
+        "Finder acilacak dosya bulunmadi.": "No file was found to reveal in Finder.",
+        "Guvenli mod bu kategoriyi secmiyor.": "Safe mode does not allow selecting this category.",
+        "%@ plandan cikarildi.": "%@ was removed from the plan.",
+        "%@ plana eklendi.": "%@ was added to the plan.",
+        "Guvenli mod %@.": "Safe mode %@.",
+        "acildi": "enabled",
+        "kapatildi": "disabled",
+        "Derin tarama %@.": "Deep scan %@.",
+        "Snapshot manifesti %@.": "Snapshot manifest %@.",
+        "etkin": "enabled",
+        "Bakim ritmi %@ olarak guncellendi.": "Maintenance cadence updated to %@.",
+        "Disk esigi %@ olarak kaydedildi.": "Disk threshold saved as %@.",
+        "Tarama tamamlandi": "Scan completed",
+        "%@ temizlenebilir alan bulundu.": "%@ of cleanable space was found.",
+        "Tarama tamamlandi. %@ aday alan hesaplandi.": "Scan completed. %@ of candidate space was calculated.",
+        "Temizlik tamamlandi": "Cleanup completed",
+        "%@ alan temizlendi.": "%@ of space was cleaned.",
+        "Temizlik tamamlandi. %@ oge Cop Kutusu'na tasindi, %@ alan acildi.": "Cleanup completed. %@ items were moved to Trash and %@ of space was freed.",
+        "Temizlik tamamlandi. Yeni tarama baslatiliyor.": "Cleanup completed. Starting a fresh scan.",
+        "- %@: %@ · %@ oge · %@": "- %@: %@ · %@ items · %@",
+        "MacCleanerPro Gercek Tarama Raporu": "MacCleanerPro Real Scan Report",
+        "Tarih: %@": "Date: %@",
+        "Son tarama: %@": "Last scan: %@",
+        "Son temizlik: %@": "Last cleanup: %@",
+        "Henuz yok": "Not yet",
+        "Toplam aday alan: %@": "Total candidate space: %@",
+        "Secili plan: %@": "Selected plan: %@",
+        "Tahmini sonraki bos alan: %@": "Estimated free space after cleanup: %@",
+        "Risk profili: %@": "Risk profile: %@",
+        "Bakim ritmi: %@": "Maintenance cadence: %@",
+        "Disk esigi: %@": "Disk threshold: %@",
+        "Derin tarama: %@": "Deep scan: %@",
+        "Snapshot manifesti: %@": "Snapshot manifest: %@",
+        "Acik": "On",
+        "Kapali": "Off",
+        "Secili kategoriler:": "Selected categories:",
+        "- Secili kategori yok": "- No category selected",
+        "Ozet:": "Summary:",
+        "Cache alanlari taraniyor": "Scanning cache areas",
+        "Library/Caches ve gerekiyorsa container cache klasorleri okunuyor.": "Reading Library/Caches and container cache folders when available.",
+        "Log arsivleri okunuyor": "Reading log archives",
+        "Tani loglari, crash raporlari ve ilgili klasorler gruplanıyor.": "Grouping diagnostic logs, crash reports, and related folders.",
+        "DerivedData olculuyor": "Measuring DerivedData",
+        "Xcode DerivedData artıkları gercek boyutlariyla taraniyor.": "Scanning Xcode DerivedData artifacts at real allocated size.",
+        "Simulator ve cihaz destek dosyalari taraniyor": "Scanning simulator and device-support files",
+        "CoreSimulator cache ve device support klasorleri hesaplaniyor.": "Calculating CoreSimulator cache and device-support folders.",
+        "Mail indirilenleri kontrol ediliyor": "Checking Mail downloads",
+        "Apple Mail tarafinda lokal kopyalanan ek klasorleri okunuyor.": "Reading attachment folders locally copied by Apple Mail.",
+        "iOS yedekleri kontrol ediliyor": "Checking iOS backups",
+        "Finder uzerinden alinmis MobileSync yedekleri aranıyor.": "Looking for MobileSync backups created through Finder.",
+        "Downloads sinifi filtreleniyor": "Filtering Downloads",
+        "Buyuk ve eski indirilen dosyalar esiklere gore seciliyor.": "Selecting large and old downloaded files based on the current threshold.",
+        "Docker ozeti alinıyor": "Collecting Docker summary",
+        "Docker CLI varsa reclaimable alan ve prune secenegi hazirlaniyor.": "Preparing reclaimable Docker space and prune support when Docker CLI is available.",
+        "Gercek sistem verisi okundu ve temizlenebilir alan hesaplandi.": "Real system data was scanned and reclaimable space was calculated.",
+        "Secili kategorilerde temizlenecek ogeler bulunmuyor.": "No cleanable items were found in the selected categories.",
+        "%@ temizleniyor": "Cleaning %@",
+        "%@ tasinamadi: %@": "%@ could not be moved: %@",
+        "Native macOS Cleanup": "Native macOS Cleanup",
+        "Saglik Skoru": "Health Score",
+        "Secili geri kazanım": "Selected reclaim",
+        "Toplam aday alan": "Total candidate space",
+        "Bir sonraki bakim": "Next maintenance",
+        "Canli Durum": "Live Status",
+        "Taraniyor": "Scanning",
+        "Akilli Tarama": "Smart Scan",
+        "Temizleniyor": "Cleaning",
+        "Secilenleri Temizle": "Clean Selected",
+        "Gercek sistem taramasi ve secilebilir temizlik isleri": "Real system scanning and selectable cleanup tasks",
+        "Bu masaustu uygulamasi gercek klasorleri okur, secilen dosyalari Cop Kutusu'na tasir ve docker sistem temizligini komutla calistirabilir.": "This desktop app reads real folders, moves selected files to Trash, and can run Docker system cleanup commands.",
+        "Guvenli mod": "Safe mode",
+        "Derin tarama": "Deep scan",
+        "Snapshot": "Snapshot",
+        "Aktif plan": "Active plan",
+        "Mevcut bos alan": "Current free space",
+        "Disk anlik": "Current disk state",
+        "Plan sonrasi": "After plan",
+        "Hedef bos alan": "Target free space",
+        "Gercek tarama sonucu": "Real scan result",
+        "Secili kategori": "Selected categories",
+        "Temizlik planindaki moduller": "Modules currently in the cleanup plan",
+        "Saglik skoru": "Health score",
+        "Bos alan ve risk dengesi": "Free-space and risk balance",
+        "Aylik projeksiyon": "Monthly projection",
+        "Temizlik Kategorileri": "Cleanup Categories",
+        "Secim, reveal ve dogrudan temizlik butonlari ile gercek kaynaklar.": "Real sources with selection, reveal, and direct cleanup actions.",
+        "Canli Aktivite": "Live Activity",
+        "Tarama, secim ve temizlik olaylari yerel akista tutulur.": "Scan, selection, and cleanup events are tracked in the local activity stream.",
+        "Disk Ozetleri": "Disk Summaries",
+        "Gercek dosya sistemi istatistikleri.": "Real filesystem statistics.",
+        "Toplam kapasite": "Total capacity",
+        "Kullanilan": "Used",
+        "Bos alan": "Free space",
+        "Son tarama": "Last scan",
+        "Secili Temizlik Plani": "Selected Cleanup Plan",
+        "Gercek olarak secili kategoriler ve beklenen alan geri kazanimi.": "The actual selected categories and expected reclaimed space.",
+        "Henuz secili kategori yok. Kontrol Merkezi'nden secim yapabilirsiniz.": "No category is selected yet. You can choose items from the Control Center.",
+        "Finder": "Finder",
+        "%@ · %@ oge · %@": "%@ · %@ items · %@",
+        "Once / Sonra": "Before / After",
+        "Secili planin bos alani nasil etkileyecegini gosterir.": "Shows how the selected plan affects free space.",
+        "Bugunku bos alan": "Free space today",
+        "Plan sonrasi bos alan": "Free space after plan",
+        "Secili plan toplamı": "Selected plan total",
+        "Geri Donus Katmani": "Recovery Layer",
+        "Temizlik oncesi audit manifesti ve son cikan dosyalar.": "Pre-cleanup audit manifest and the latest output files.",
+        "Snapshot tercihi": "Snapshot preference",
+        "Henuz yapilmadi": "Not executed yet",
+        "Manifest dosyasi": "Manifest file",
+        "Henuz uretilmedi": "Not generated yet",
+        "Manifesti Ac": "Open Manifest",
+        "Bakim Ayarlari": "Maintenance Settings",
+        "Yerel tercihler gercek uygulama durumunda saklanir ve rapor hesaplarina yansir.": "Local preferences are stored in the live app state and reflected in reports.",
+        "Bakim Ritmi": "Maintenance Cadence",
+        "Disk Doluluk Esigi": "Disk Usage Threshold",
+        "Inceleme ve manuel kategoriler otomatik secilmez.": "Review and manual categories are not selected automatically.",
+        "Container cache ve daha agresif download esikleri taranir.": "Scans container cache layers and applies more aggressive download thresholds.",
+        "Temizlik oncesi dosya listesi JSON olarak kaydedilir.": "Stores a JSON file list before cleanup.",
+        "Otomasyon Ongorusu": "Automation Projection",
+        "Gercek secili plan ve tercihlerinize gore projeksiyon uretir.": "Builds a projection from your current selections and preferences.",
+        "Aylik potansiyel": "Monthly potential",
+        "Guvenlik profili": "Safety profile",
+        "Politika Notu": "Policy Note",
+        "LaunchAgent eklemeden once bu uygulama tercihleri lokal olarak tutar.": "Before adding a LaunchAgent, this app keeps preferences locally.",
+        "Uygulama bu surumde arka planda otomatik calisacak LaunchAgent yazmaz; ancak secilen ritim, esik ve koruma tercihleri rapor ve temizlik kararlarini etkiler.": "This version does not install a LaunchAgent for automatic background execution; however, selected cadence, threshold, and protection settings still affect reports and cleanup decisions.",
+        "Alti Aylik Projeksiyon": "Six-Month Projection",
+        "Secili plan ile aylik geri kazanım egilimi gercek veriden uretilir.": "A monthly reclaim trend is generated from the selected plan and current data.",
+        "Rapor Ozeti": "Report Summary",
+        "Disa aktarilabilir metin raporu ve yerel artefaktlar.": "Exportable text report and local artifacts.",
+        "Raporu Disa Aktar": "Export Report",
+        "Rapor Dosyasini Ac": "Open Report File",
+        "Artefaktlar": "Artifacts",
+        "Son olusan report ve snapshot manifesti yolları.": "Paths to the latest report and snapshot manifest.",
+        "Rapor": "Report",
+        "%@ oge": "%@ items",
+        "Shell": "Shell",
+        "Secili": "Selected",
+        "Guvenli mod acik oldugu icin bu kategori otomatik secilmez.": "This category is not auto-selected while safe mode is on.",
+        "Plani Cikar": "Remove from Plan",
+        "Plana Ekle": "Add to Plan",
+        "Arayuz Dili": "Interface Language",
+        "Otomatik (Sistem)": "Automatic (System)",
+        "Desteklenmeyen cihaz dili icin otomatik İngilizce.": "Automatically falls back to English when the device language is not supported.",
+        "Dil modu": "Language Mode",
+        "Etkin dil": "Effective Language",
+        "Dil secimi degisti. Arayuz yenileniyor.": "Language selection changed. Refreshing the interface.",
+        "Teal & Bakir": "Teal & Copper",
+        "Okyanus & Mercan": "Ocean & Coral",
+        "Orman & Kehribar": "Forest & Amber",
+        "Mor & Altin": "Purple & Gold",
+        "Indigo & Gul": "Indigo & Rose",
+        "Arduvaz & Toprak": "Slate & Terra",
+        "Genel Kullanim": "General Use",
+        "Gelistirici": "Developer",
+        "Guclu Kullanici": "Power User",
+        "Temel cache ve log temizligi. Yeni baslayanlar icin ideal.": "Basic cache and log cleanup. Ideal for new users.",
+        "Xcode, Docker ve gelistirici araclarini kapsar.": "Covers Xcode, Docker, and developer tools.",
+        "Tum kategoriler, derin tarama ve proaktif bakim.": "All categories, deep scan, and proactive maintenance.",
+        "Mac'inizi gercek dosya sistemi taramasi ile temizler.": "Cleans your Mac with real filesystem scanning.",
+        "Kurulum birkac adimda tamamlanir. Istediginizde degistirebilirsiniz.": "Setup completes in a few steps. You can change settings anytime.",
+        "Kullanim Profilinizi Secin": "Choose Your Usage Profile",
+        "Profil, varsayilan tarama ve bakim ayarlarini otomatik yapilandirir.": "The profile automatically configures default scan and maintenance settings.",
+        "Renk Temasinizi Secin": "Choose Your Color Theme",
+        "Arayuz rengi istediginiz zaman Otomasyon bolumunden degistirilebilir.": "The interface color can be changed anytime from the Automation section.",
+        "Hazirsiniz!": "You're all set!",
+        "Kurulum tamamlandi. Ilk tarama simdi baslatilabilir.": "Setup complete. You can start the first scan now.",
+        "Profil": "Profile",
+        "Tema": "Theme",
+        "Geri": "Back",
+        "Atla": "Skip",
+        "Devam": "Continue",
+        "Taramaya Basla": "Start Scanning",
+        "Gercek Tarama": "Real Scan",
+        "Guvenli Temizlik": "Safe Cleanup",
+        "Anlik Raporlar": "Live Reports",
+        "Kurulum profili uygulandi: %@": "Setup profile applied: %@",
+        "Renk Temasi": "Color Theme",
+        "Secilen tema: ": "Selected theme: ",
+        "Kurulum Sihirbazini Goster": "Show Setup Wizard",
+        "Tarama iptal edildi": "Scan cancelled",
+        "Kullanici taraflı iptal.": "Cancelled by user.",
+        "Tarama kullanici tarafindan iptal edildi.": "Scan was cancelled by the user.",
+        "Iptal Et": "Cancel",
+        "Arka Plan Bakim": "Background Maintenance",
+        "LaunchAgent ile secili ritimde arka planda uygulama calisir.": "App runs in the background at the selected cadence using a LaunchAgent.",
+        "LaunchAgent kuruldu. Arka plan bakim aktif.": "LaunchAgent installed. Background maintenance is active.",
+        "LaunchAgent kaldirildi. Arka plan bakim devre disi.": "LaunchAgent removed. Background maintenance is off.",
+        "LaunchAgent kurulamadi: uygulama yolu bulunamadi.": "LaunchAgent could not be installed: app path not found.",
+        "LaunchAgent kurulamadi: %@": "LaunchAgent could not be installed: %@",
+        "LaunchAgent kaldirilamadi: %@": "LaunchAgent could not be removed: %@",
+        "Arka plan bakim aktif edildi.": "Background maintenance enabled.",
+        "Arka plan bakim devre disi.": "Background maintenance disabled.",
+        "Docker bulunamadi veya temizlenecek alan yok.": "Docker not found or no reclaimable space.",
+        "Docker prune hatasi: %@": "Docker prune error: %@",
+        "Docker prune calistirilamadi: %@": "Docker prune could not run: %@",
+        "Versiyon: %@": "Version: %@",
+        "Arka plan bakim: %@": "Background maintenance: %@",
+        "Kurulum profili uygulandi: %@": "Setup profile applied: %@",
+        "Temizligi Onayla": "Confirm Cleanup",
+        "Cop Kutusuna Tasi": "Move to Trash",
+        "Iptal": "Cancel",
+        "%@ kategori, %@ alan Cop Kutusu'na tasınacak. Docker prune seciliyse bu islem doğrudan calisacak.": "%@ categories and %@ of data will be moved to Trash. If Docker prune is selected, it will run directly.",
+        "Henuz aktivite yok.": "No activity yet."
+    ]
+
+    private static let chineseSimplified: [String: String] = [
+        "Kontrol Merkezi": "控制中心",
+        "Temizlik Planı": "清理计划",
+        "Otomasyon": "自动化",
+        "Raporlar": "报告",
+        "Guvenli": "安全",
+        "Inceleme": "复查",
+        "Manuel": "手动",
+        "Kullanici Cache": "用户缓存",
+        "Log ve Crash Arsivleri": "日志与崩溃归档",
+        "Mail Indirmeleri": "邮件下载",
+        "iOS Finder Yedekleri": "iOS Finder 备份",
+        "Buyuk Download Dosyalari": "大型下载文件",
+        "Docker Sistem Verisi": "Docker 系统数据",
+        "Gunluk": "每日",
+        "Haftalik": "每周",
+        "Aylik": "每月",
+        "Hazir": "就绪",
+        "Temizlik calisiyor": "正在清理",
+        "Tarama calisiyor": "正在扫描",
+        "Henuz taranmadi": "尚未扫描",
+        "Saglik Skoru": "健康评分",
+        "Secili geri kazanım": "已选回收空间",
+        "Toplam aday alan": "总候选空间",
+        "Bir sonraki bakim": "下次维护",
+        "Canli Durum": "实时状态",
+        "Taraniyor": "扫描中",
+        "Akilli Tarama": "智能扫描",
+        "Temizleniyor": "清理中",
+        "Secilenleri Temizle": "清理已选项",
+        "Guvenli mod": "安全模式",
+        "Derin tarama": "深度扫描",
+        "Snapshot": "快照",
+        "Temizlik Kategorileri": "清理类别",
+        "Canli Aktivite": "实时活动",
+        "Disk Ozetleri": "磁盘摘要",
+        "Secili Temizlik Plani": "已选清理计划",
+        "Finder": "访达",
+        "Once / Sonra": "前后对比",
+        "Manifesti Ac": "打开清单",
+        "Bakim Ayarlari": "维护设置",
+        "Bakim Ritmi": "维护节奏",
+        "Disk Doluluk Esigi": "磁盘占用阈值",
+        "Otomasyon Ongorusu": "自动化预测",
+        "Rapor Ozeti": "报告摘要",
+        "Raporu Disa Aktar": "导出报告",
+        "Rapor Dosyasini Ac": "打开报告文件",
+        "Artefaktlar": "产物",
+        "Rapor": "报告",
+        "Secili": "已选",
+        "Plani Cikar": "移出计划",
+        "Plana Ekle": "加入计划",
+        "Temizligi Onayla": "确认清理",
+        "Cop Kutusuna Tasi": "移入废纸篓",
+        "Iptal": "取消",
+        "%@ kategori, %@ alan Cop Kutusu'na tasınacak. Docker prune seciliyse bu islem doğrudan calisacak.": "将 %@ 个类别、%@ 数据移入废纸篓。如果选择了 Docker prune，将直接执行。",
+        "Henuz aktivite yok.": "暂无活动记录。"
+    ]
+
+    private static let german: [String: String] = [
+        "Kontrol Merkezi": "Kontrollzentrum",
+        "Temizlik Planı": "Bereinigungsplan",
+        "Otomasyon": "Automatisierung",
+        "Raporlar": "Berichte",
+        "Guvenli": "Sicher",
+        "Inceleme": "Prufen",
+        "Manuel": "Manuell",
+        "Kullanici Cache": "Benutzer-Cache",
+        "Log ve Crash Arsivleri": "Log- und Absturzarchive",
+        "Mail Indirmeleri": "Mail-Downloads",
+        "iOS Finder Yedekleri": "iOS-Finder-Backups",
+        "Buyuk Download Dosyalari": "Große Download-Dateien",
+        "Docker Sistem Verisi": "Docker-Systemdaten",
+        "Gunluk": "Taglich",
+        "Haftalik": "Wochentlich",
+        "Aylik": "Monatlich",
+        "Hazir": "Bereit",
+        "Temizlik calisiyor": "Bereinigung lauft",
+        "Tarama calisiyor": "Scan lauft",
+        "Henuz taranmadi": "Noch nicht gescannt",
+        "Saglik Skoru": "Gesundheitswert",
+        "Secili geri kazanım": "Ausgewahlter Gewinn",
+        "Toplam aday alan": "Gesamter Kandidatenplatz",
+        "Bir sonraki bakim": "Nächste Wartung",
+        "Canli Durum": "Live-Status",
+        "Taraniyor": "Scannen",
+        "Akilli Tarama": "Intelligenter Scan",
+        "Temizleniyor": "Bereinigen",
+        "Secilenleri Temizle": "Auswahl bereinigen",
+        "Guvenli mod": "Sicherer Modus",
+        "Derin tarama": "Tiefenscan",
+        "Snapshot": "Snapshot",
+        "Temizlik Kategorileri": "Bereinigungskategorien",
+        "Canli Aktivite": "Live-Aktivitaten",
+        "Disk Ozetleri": "Datentragerubersicht",
+        "Secili Temizlik Plani": "Ausgewahlter Bereinigungsplan",
+        "Finder": "Finder",
+        "Once / Sonra": "Vorher / Nachher",
+        "Manifesti Ac": "Manifest offnen",
+        "Bakim Ayarlari": "Wartungseinstellungen",
+        "Bakim Ritmi": "Wartungsrhythmus",
+        "Disk Doluluk Esigi": "Belegungsgrenze",
+        "Otomasyon Ongorusu": "Automatisierungsprognose",
+        "Rapor Ozeti": "Berichtszusammenfassung",
+        "Raporu Disa Aktar": "Bericht exportieren",
+        "Rapor Dosyasini Ac": "Berichtsdatei offnen",
+        "Artefaktlar": "Artefakte",
+        "Rapor": "Bericht",
+        "Secili": "Ausgewahlt",
+        "Plani Cikar": "Aus Plan entfernen",
+        "Plana Ekle": "Zum Plan hinzufugen",
+        "Temizligi Onayla": "Bereinigung bestatigen",
+        "Cop Kutusuna Tasi": "In den Papierkorb",
+        "Iptal": "Abbrechen",
+        "%@ kategori, %@ alan Cop Kutusu'na tasınacak. Docker prune seciliyse bu islem doğrudan calisacak.": "%@ Kategorien mit %@ werden in den Papierkorb verschoben. Docker prune wird direkt ausgefuhrt, falls ausgewahlt.",
+        "Henuz aktivite yok.": "Noch keine Aktivitat."
+    ]
+
+    private static let japanese: [String: String] = [
+        "Kontrol Merkezi": "コントロールセンター",
+        "Temizlik Planı": "クリーンアップ計画",
+        "Otomasyon": "自動化",
+        "Raporlar": "レポート",
+        "Guvenli": "安全",
+        "Inceleme": "確認",
+        "Manuel": "手動",
+        "Kullanici Cache": "ユーザーキャッシュ",
+        "Log ve Crash Arsivleri": "ログとクラッシュアーカイブ",
+        "Mail Indirmeleri": "メールダウンロード",
+        "iOS Finder Yedekleri": "iOS Finder バックアップ",
+        "Buyuk Download Dosyalari": "大きなダウンロードファイル",
+        "Docker Sistem Verisi": "Docker システムデータ",
+        "Gunluk": "毎日",
+        "Haftalik": "毎週",
+        "Aylik": "毎月",
+        "Hazir": "準備完了",
+        "Temizlik calisiyor": "クリーンアップ中",
+        "Tarama calisiyor": "スキャン中",
+        "Henuz taranmadi": "未スキャン",
+        "Saglik Skoru": "ヘルススコア",
+        "Secili geri kazanım": "選択済み回収量",
+        "Toplam aday alan": "候補容量合計",
+        "Bir sonraki bakim": "次回メンテナンス",
+        "Canli Durum": "ライブ状態",
+        "Taraniyor": "スキャン中",
+        "Akilli Tarama": "スマートスキャン",
+        "Temizleniyor": "清掃中",
+        "Secilenleri Temizle": "選択項目をクリーン",
+        "Guvenli mod": "安全モード",
+        "Derin tarama": "詳細スキャン",
+        "Snapshot": "スナップショット",
+        "Temizlik Kategorileri": "クリーンアップカテゴリ",
+        "Canli Aktivite": "ライブアクティビティ",
+        "Disk Ozetleri": "ディスク概要",
+        "Secili Temizlik Plani": "選択された計画",
+        "Finder": "Finder",
+        "Manifesti Ac": "マニフェストを開く",
+        "Bakim Ayarlari": "メンテナンス設定",
+        "Bakim Ritmi": "メンテナンス頻度",
+        "Disk Doluluk Esigi": "ディスク使用率しきい値",
+        "Rapor Ozeti": "レポート概要",
+        "Raporu Disa Aktar": "レポートを書き出す",
+        "Rapor Dosyasini Ac": "レポートファイルを開く",
+        "Artefaktlar": "成果物",
+        "Rapor": "レポート",
+        "Secili": "選択済み",
+        "Plani Cikar": "計画から外す",
+        "Plana Ekle": "計画に追加",
+        "Temizligi Onayla": "クリーンアップを確認",
+        "Cop Kutusuna Tasi": "ゴミ箱に移動",
+        "Iptal": "キャンセル",
+        "%@ kategori, %@ alan Cop Kutusu'na tasınacak. Docker prune seciliyse bu islem doğrudan calisacak.": "%@ カテゴリ、%@ のデータをゴミ箱に移動します。Docker prune を選択した場合は直接実行されます。",
+        "Henuz aktivite yok.": "まだ活動がありません。"
+    ]
+
+    private static let hindi: [String: String] = [
+        "Kontrol Merkezi": "कंट्रोल सेंटर",
+        "Temizlik Planı": "क्लीनअप प्लान",
+        "Otomasyon": "ऑटोमेशन",
+        "Raporlar": "रिपोर्ट्स",
+        "Guvenli": "सुरक्षित",
+        "Inceleme": "समीक्षा",
+        "Manuel": "मैनुअल",
+        "Kullanici Cache": "यूज़र कैश",
+        "Log ve Crash Arsivleri": "लॉग और क्रैश आर्काइव",
+        "Mail Indirmeleri": "मेल डाउनलोड्स",
+        "iOS Finder Yedekleri": "iOS Finder बैकअप",
+        "Buyuk Download Dosyalari": "बड़ी डाउनलोड फ़ाइलें",
+        "Docker Sistem Verisi": "Docker सिस्टम डेटा",
+        "Gunluk": "दैनिक",
+        "Haftalik": "साप्ताहिक",
+        "Aylik": "मासिक",
+        "Hazir": "तैयार",
+        "Temizlik calisiyor": "क्लीनअप चल रहा है",
+        "Tarama calisiyor": "स्कैन चल रहा है",
+        "Henuz taranmadi": "अभी स्कैन नहीं हुआ",
+        "Saglik Skoru": "हेल्थ स्कोर",
+        "Secili geri kazanım": "चयनित रिक्लेम",
+        "Toplam aday alan": "कुल संभावित स्थान",
+        "Bir sonraki bakim": "अगला रखरखाव",
+        "Canli Durum": "लाइव स्थिति",
+        "Taraniyor": "स्कैन हो रहा है",
+        "Akilli Tarama": "स्मार्ट स्कैन",
+        "Temizleniyor": "साफ़ किया जा रहा है",
+        "Secilenleri Temizle": "चयनित साफ़ करें",
+        "Guvenli mod": "सेफ मोड",
+        "Derin tarama": "डीप स्कैन",
+        "Snapshot": "स्नैपशॉट",
+        "Bakim Ayarlari": "रखरखाव सेटिंग्स",
+        "Bakim Ritmi": "रखरखाव चक्र",
+        "Rapor Ozeti": "रिपोर्ट सारांश",
+        "Raporu Disa Aktar": "रिपोर्ट एक्सपोर्ट करें",
+        "Rapor Dosyasini Ac": "रिपोर्ट फ़ाइल खोलें",
+        "Rapor": "रिपोर्ट",
+        "Secili": "चयनित",
+        "Plani Cikar": "प्लान से हटाएं",
+        "Plana Ekle": "प्लान में जोड़ें",
+        "Temizligi Onayla": "क्लीनअप की पुष्टि करें",
+        "Cop Kutusuna Tasi": "ट्रैश में डालें",
+        "Iptal": "रद्द करें",
+        "%@ kategori, %@ alan Cop Kutusu'na tasınacak. Docker prune seciliyse bu islem doğrudan calisacak.": "%@ श्रेणियों का %@ डेटा ट्रैश में जाएगा। Docker prune चुना है तो सीधे चलेगा।",
+        "Henuz aktivite yok.": "अभी तक कोई गतिविधि नहीं।"
+    ]
+
+    private static let french: [String: String] = [
+        "Kontrol Merkezi": "Centre de controle",
+        "Temizlik Planı": "Plan de nettoyage",
+        "Otomasyon": "Automatisation",
+        "Raporlar": "Rapports",
+        "Guvenli": "Securise",
+        "Inceleme": "Verification",
+        "Manuel": "Manuel",
+        "Kullanici Cache": "Cache utilisateur",
+        "Log ve Crash Arsivleri": "Archives de journaux et de crash",
+        "Mail Indirmeleri": "Telechargements Mail",
+        "iOS Finder Yedekleri": "Sauvegardes Finder iOS",
+        "Buyuk Download Dosyalari": "Gros fichiers telecharges",
+        "Docker Sistem Verisi": "Donnees systeme Docker",
+        "Gunluk": "Quotidien",
+        "Haftalik": "Hebdomadaire",
+        "Aylik": "Mensuel",
+        "Hazir": "Pret",
+        "Temizlik calisiyor": "Nettoyage en cours",
+        "Tarama calisiyor": "Analyse en cours",
+        "Henuz taranmadi": "Pas encore analyse",
+        "Saglik Skoru": "Score de sante",
+        "Secili geri kazanım": "Recuperation selectionnee",
+        "Toplam aday alan": "Espace potentiel total",
+        "Bir sonraki bakim": "Prochaine maintenance",
+        "Canli Durum": "Etat en direct",
+        "Taraniyor": "Analyse",
+        "Akilli Tarama": "Analyse intelligente",
+        "Temizleniyor": "Nettoyage",
+        "Secilenleri Temizle": "Nettoyer la selection",
+        "Guvenli mod": "Mode securise",
+        "Derin tarama": "Analyse approfondie",
+        "Snapshot": "Instantane",
+        "Bakim Ayarlari": "Parametres de maintenance",
+        "Bakim Ritmi": "Rythme de maintenance",
+        "Rapor Ozeti": "Resume du rapport",
+        "Raporu Disa Aktar": "Exporter le rapport",
+        "Rapor Dosyasini Ac": "Ouvrir le rapport",
+        "Artefaktlar": "Artefacts",
+        "Rapor": "Rapport",
+        "Secili": "Selectionne",
+        "Plani Cikar": "Retirer du plan",
+        "Plana Ekle": "Ajouter au plan",
+        "Temizligi Onayla": "Confirmer le nettoyage",
+        "Cop Kutusuna Tasi": "Mettre a la corbeille",
+        "Iptal": "Annuler",
+        "%@ kategori, %@ alan Cop Kutusu'na tasınacak. Docker prune seciliyse bu islem doğrudan calisacak.": "%@ categories et %@ de donnees seront mis a la corbeille. Docker prune sera execute directement si selectionne.",
+        "Henuz aktivite yok.": "Aucune activite pour l'instant."
+    ]
+
+    private static let portuguese: [String: String] = [
+        "Kontrol Merkezi": "Central de controle",
+        "Temizlik Planı": "Plano de limpeza",
+        "Otomasyon": "Automacao",
+        "Raporlar": "Relatorios",
+        "Guvenli": "Seguro",
+        "Inceleme": "Revisao",
+        "Manuel": "Manual",
+        "Kullanici Cache": "Cache do usuario",
+        "Log ve Crash Arsivleri": "Arquivos de log e falha",
+        "Mail Indirmeleri": "Downloads do Mail",
+        "iOS Finder Yedekleri": "Backups do Finder iOS",
+        "Buyuk Download Dosyalari": "Arquivos grandes de download",
+        "Docker Sistem Verisi": "Dados do sistema Docker",
+        "Gunluk": "Diario",
+        "Haftalik": "Semanal",
+        "Aylik": "Mensal",
+        "Hazir": "Pronto",
+        "Temizlik calisiyor": "Limpeza em andamento",
+        "Tarama calisiyor": "Verificacao em andamento",
+        "Henuz taranmadi": "Ainda nao verificado",
+        "Saglik Skoru": "Pontuacao de saude",
+        "Secili geri kazanım": "Recuperacao selecionada",
+        "Toplam aday alan": "Espaco candidato total",
+        "Bir sonraki bakim": "Proxima manutencao",
+        "Canli Durum": "Status ao vivo",
+        "Taraniyor": "Verificando",
+        "Akilli Tarama": "Verificacao inteligente",
+        "Temizleniyor": "Limpando",
+        "Secilenleri Temizle": "Limpar selecionados",
+        "Guvenli mod": "Modo seguro",
+        "Derin tarama": "Verificacao profunda",
+        "Snapshot": "Snapshot",
+        "Bakim Ayarlari": "Configuracoes de manutencao",
+        "Bakim Ritmi": "Ritmo de manutencao",
+        "Rapor Ozeti": "Resumo do relatorio",
+        "Raporu Disa Aktar": "Exportar relatorio",
+        "Rapor Dosyasini Ac": "Abrir arquivo do relatorio",
+        "Artefaktlar": "Artefatos",
+        "Rapor": "Relatorio",
+        "Secili": "Selecionado",
+        "Plani Cikar": "Remover do plano",
+        "Plana Ekle": "Adicionar ao plano",
+        "Temizligi Onayla": "Confirmar limpeza",
+        "Cop Kutusuna Tasi": "Mover para a lixeira",
+        "Iptal": "Cancelar",
+        "%@ kategori, %@ alan Cop Kutusu'na tasınacak. Docker prune seciliyse bu islem doğrudan calisacak.": "%@ categorias e %@ de dados serao movidos para a lixeira. Docker prune sera executado diretamente se selecionado.",
+        "Henuz aktivite yok.": "Nenhuma atividade ainda."
+    ]
+
+    private static let italian: [String: String] = [
+        "Kontrol Merkezi": "Centro di controllo",
+        "Temizlik Planı": "Piano di pulizia",
+        "Otomasyon": "Automazione",
+        "Raporlar": "Report",
+        "Guvenli": "Sicuro",
+        "Inceleme": "Revisione",
+        "Manuel": "Manuale",
+        "Kullanici Cache": "Cache utente",
+        "Log ve Crash Arsivleri": "Archivi log e crash",
+        "Mail Indirmeleri": "Download Mail",
+        "iOS Finder Yedekleri": "Backup Finder iOS",
+        "Buyuk Download Dosyalari": "File di download grandi",
+        "Docker Sistem Verisi": "Dati di sistema Docker",
+        "Gunluk": "Giornaliero",
+        "Haftalik": "Settimanale",
+        "Aylik": "Mensile",
+        "Hazir": "Pronto",
+        "Temizlik calisiyor": "Pulizia in corso",
+        "Tarama calisiyor": "Scansione in corso",
+        "Henuz taranmadi": "Non ancora scansionato",
+        "Saglik Skoru": "Punteggio salute",
+        "Secili geri kazanım": "Recupero selezionato",
+        "Toplam aday alan": "Spazio candidato totale",
+        "Bir sonraki bakim": "Prossima manutenzione",
+        "Canli Durum": "Stato live",
+        "Taraniyor": "Scansione",
+        "Akilli Tarama": "Scansione intelligente",
+        "Temizleniyor": "Pulizia",
+        "Secilenleri Temizle": "Pulisci selezionati",
+        "Guvenli mod": "Modalita sicura",
+        "Derin tarama": "Scansione profonda",
+        "Snapshot": "Snapshot",
+        "Bakim Ayarlari": "Impostazioni manutenzione",
+        "Bakim Ritmi": "Ritmo di manutenzione",
+        "Rapor Ozeti": "Riepilogo report",
+        "Raporu Disa Aktar": "Esporta report",
+        "Rapor Dosyasini Ac": "Apri file report",
+        "Artefaktlar": "Artefatti",
+        "Rapor": "Report",
+        "Secili": "Selezionato",
+        "Plani Cikar": "Rimuovi dal piano",
+        "Plana Ekle": "Aggiungi al piano",
+        "Temizligi Onayla": "Conferma pulizia",
+        "Cop Kutusuna Tasi": "Sposta nel cestino",
+        "Iptal": "Annulla",
+        "%@ kategori, %@ alan Cop Kutusu'na tasınacak. Docker prune seciliyse bu islem doğrudan calisacak.": "%@ categorie e %@ di dati verranno spostati nel cestino. Docker prune verra eseguito direttamente se selezionato.",
+        "Henuz aktivite yok.": "Nessuna attivita ancora."
+    ]
+
+    private static let russian: [String: String] = [
+        "Kontrol Merkezi": "Центр управления",
+        "Temizlik Planı": "План очистки",
+        "Otomasyon": "Автоматизация",
+        "Raporlar": "Отчеты",
+        "Guvenli": "Безопасно",
+        "Inceleme": "Проверка",
+        "Manuel": "Вручную",
+        "Kullanici Cache": "Пользовательский кэш",
+        "Log ve Crash Arsivleri": "Журналы и архивы сбоев",
+        "Mail Indirmeleri": "Загрузки Mail",
+        "iOS Finder Yedekleri": "Резервные копии iOS Finder",
+        "Buyuk Download Dosyalari": "Крупные загруженные файлы",
+        "Docker Sistem Verisi": "Системные данные Docker",
+        "Gunluk": "Ежедневно",
+        "Haftalik": "Еженедельно",
+        "Aylik": "Ежемесячно",
+        "Hazir": "Готово",
+        "Temizlik calisiyor": "Очистка выполняется",
+        "Tarama calisiyor": "Сканирование выполняется",
+        "Henuz taranmadi": "Еще не сканировалось",
+        "Saglik Skoru": "Оценка состояния",
+        "Secili geri kazanım": "Выбранное освобождение",
+        "Toplam aday alan": "Общий потенциальный объем",
+        "Bir sonraki bakim": "Следующее обслуживание",
+        "Canli Durum": "Текущий статус",
+        "Taraniyor": "Сканирование",
+        "Akilli Tarama": "Умное сканирование",
+        "Temizleniyor": "Очистка",
+        "Secilenleri Temizle": "Очистить выбранное",
+        "Guvenli mod": "Безопасный режим",
+        "Derin tarama": "Глубокое сканирование",
+        "Snapshot": "Снимок",
+        "Bakim Ayarlari": "Параметры обслуживания",
+        "Bakim Ritmi": "Ритм обслуживания",
+        "Rapor Ozeti": "Сводка отчета",
+        "Raporu Disa Aktar": "Экспорт отчета",
+        "Rapor Dosyasini Ac": "Открыть файл отчета",
+        "Artefaktlar": "Артефакты",
+        "Rapor": "Отчет",
+        "Secili": "Выбрано",
+        "Plani Cikar": "Убрать из плана",
+        "Plana Ekle": "Добавить в план",
+        "Temizligi Onayla": "Подтвердить очистку",
+        "Cop Kutusuna Tasi": "Переместить в корзину",
+        "Iptal": "Отмена",
+        "%@ kategori, %@ alan Cop Kutusu'na tasınacak. Docker prune seciliyse bu islem doğrudan calisacak.": "%@ категорий и %@ данных будут перемещены в корзину. Docker prune выполнится напрямую, если выбран.",
+        "Henuz aktivite yok.": "Активности пока нет."
+    ]
+
+    private static let spanish: [String: String] = [
+        "Kontrol Merkezi": "Centro de control",
+        "Temizlik Planı": "Plan de limpieza",
+        "Otomasyon": "Automatizacion",
+        "Raporlar": "Informes",
+        "Guvenli": "Seguro",
+        "Inceleme": "Revision",
+        "Manuel": "Manual",
+        "Kullanici Cache": "Cache del usuario",
+        "Log ve Crash Arsivleri": "Archivos de registros y fallos",
+        "Mail Indirmeleri": "Descargas de Mail",
+        "iOS Finder Yedekleri": "Copias de Finder iOS",
+        "Buyuk Download Dosyalari": "Archivos grandes descargados",
+        "Docker Sistem Verisi": "Datos del sistema Docker",
+        "Gunluk": "Diario",
+        "Haftalik": "Semanal",
+        "Aylik": "Mensual",
+        "Hazir": "Listo",
+        "Temizlik calisiyor": "Limpieza en curso",
+        "Tarama calisiyor": "Analisis en curso",
+        "Henuz taranmadi": "Aun sin analizar",
+        "Saglik Skoru": "Puntuacion de salud",
+        "Secili geri kazanım": "Recuperacion seleccionada",
+        "Toplam aday alan": "Espacio candidato total",
+        "Bir sonraki bakim": "Siguiente mantenimiento",
+        "Canli Durum": "Estado en vivo",
+        "Taraniyor": "Analizando",
+        "Akilli Tarama": "Analisis inteligente",
+        "Temizleniyor": "Limpiando",
+        "Secilenleri Temizle": "Limpiar seleccionados",
+        "Guvenli mod": "Modo seguro",
+        "Derin tarama": "Analisis profundo",
+        "Snapshot": "Instantanea",
+        "Bakim Ayarlari": "Ajustes de mantenimiento",
+        "Bakim Ritmi": "Ritmo de mantenimiento",
+        "Rapor Ozeti": "Resumen del informe",
+        "Raporu Disa Aktar": "Exportar informe",
+        "Rapor Dosyasini Ac": "Abrir archivo del informe",
+        "Artefaktlar": "Artefactos",
+        "Rapor": "Informe",
+        "Secili": "Seleccionado",
+        "Plani Cikar": "Quitar del plan",
+        "Plana Ekle": "Agregar al plan",
+        "Temizligi Onayla": "Confirmar limpieza",
+        "Cop Kutusuna Tasi": "Mover a la papelera",
+        "Iptal": "Cancelar",
+        "%@ kategori, %@ alan Cop Kutusu'na tasınacak. Docker prune seciliyse bu islem doğrudan calisacak.": "%@ categorias y %@ de datos se moveran a la papelera. Docker prune se ejecutara directamente si esta seleccionado.",
+        "Henuz aktivite yok.": "Aun sin actividad."
+    ]
+
+    private static let korean: [String: String] = [
+        "Kontrol Merkezi": "제어 센터",
+        "Temizlik Planı": "정리 계획",
+        "Otomasyon": "자동화",
+        "Raporlar": "리포트",
+        "Guvenli": "안전",
+        "Inceleme": "검토",
+        "Manuel": "수동",
+        "Kullanici Cache": "사용자 캐시",
+        "Log ve Crash Arsivleri": "로그 및 크래시 보관함",
+        "Mail Indirmeleri": "메일 다운로드",
+        "iOS Finder Yedekleri": "iOS Finder 백업",
+        "Buyuk Download Dosyalari": "대용량 다운로드 파일",
+        "Docker Sistem Verisi": "Docker 시스템 데이터",
+        "Gunluk": "매일",
+        "Haftalik": "매주",
+        "Aylik": "매월",
+        "Hazir": "준비됨",
+        "Temizlik calisiyor": "정리 진행 중",
+        "Tarama calisiyor": "스캔 진행 중",
+        "Henuz taranmadi": "아직 스캔되지 않음",
+        "Saglik Skoru": "상태 점수",
+        "Secili geri kazanım": "선택된 확보 공간",
+        "Toplam aday alan": "총 후보 공간",
+        "Bir sonraki bakim": "다음 유지관리",
+        "Canli Durum": "실시간 상태",
+        "Taraniyor": "스캔 중",
+        "Akilli Tarama": "스마트 스캔",
+        "Temizleniyor": "정리 중",
+        "Secilenleri Temizle": "선택 항목 정리",
+        "Guvenli mod": "안전 모드",
+        "Derin tarama": "심층 스캔",
+        "Snapshot": "스냅샷",
+        "Bakim Ayarlari": "유지관리 설정",
+        "Bakim Ritmi": "유지관리 주기",
+        "Rapor Ozeti": "리포트 요약",
+        "Raporu Disa Aktar": "리포트 내보내기",
+        "Rapor Dosyasini Ac": "리포트 파일 열기",
+        "Artefaktlar": "산출물",
+        "Rapor": "리포트",
+        "Secili": "선택됨",
+        "Plani Cikar": "계획에서 제거",
+        "Plana Ekle": "계획에 추가",
+        "Temizligi Onayla": "정리 확인",
+        "Cop Kutusuna Tasi": "휴지통으로 이동",
+        "Iptal": "취소",
+        "%@ kategori, %@ alan Cop Kutusu'na tasınacak. Docker prune seciliyse bu islem doğrudan calisacak.": "%@ 카테고리, %@ 데이터가 휴지통으로 이동됩니다. Docker prune이 선택된 경우 직접 실행됩니다.",
+        "Henuz aktivite yok.": "아직 활동이 없습니다."
+    ]
+
+    private static let indonesian: [String: String] = [
+        "Kontrol Merkezi": "Pusat kontrol",
+        "Temizlik Planı": "Rencana pembersihan",
+        "Otomasyon": "Otomasi",
+        "Raporlar": "Laporan",
+        "Guvenli": "Aman",
+        "Inceleme": "Tinjau",
+        "Manuel": "Manual",
+        "Kullanici Cache": "Cache pengguna",
+        "Log ve Crash Arsivleri": "Arsip log dan crash",
+        "Mail Indirmeleri": "Unduhan Mail",
+        "iOS Finder Yedekleri": "Cadangan Finder iOS",
+        "Buyuk Download Dosyalari": "File unduhan besar",
+        "Docker Sistem Verisi": "Data sistem Docker",
+        "Gunluk": "Harian",
+        "Haftalik": "Mingguan",
+        "Aylik": "Bulanan",
+        "Hazir": "Siap",
+        "Temizlik calisiyor": "Pembersihan berjalan",
+        "Tarama calisiyor": "Pemindaian berjalan",
+        "Henuz taranmadi": "Belum dipindai",
+        "Saglik Skoru": "Skor kesehatan",
+        "Secili geri kazanım": "Ruang terpilih",
+        "Toplam aday alan": "Total ruang kandidat",
+        "Bir sonraki bakim": "Perawatan berikutnya",
+        "Canli Durum": "Status langsung",
+        "Taraniyor": "Memindai",
+        "Akilli Tarama": "Pemindaian pintar",
+        "Temizleniyor": "Membersihkan",
+        "Secilenleri Temizle": "Bersihkan pilihan",
+        "Guvenli mod": "Mode aman",
+        "Derin tarama": "Pemindaian mendalam",
+        "Snapshot": "Snapshot",
+        "Bakim Ayarlari": "Pengaturan perawatan",
+        "Bakim Ritmi": "Ritme perawatan",
+        "Rapor Ozeti": "Ringkasan laporan",
+        "Raporu Disa Aktar": "Ekspor laporan",
+        "Rapor Dosyasini Ac": "Buka file laporan",
+        "Artefaktlar": "Artefak",
+        "Rapor": "Laporan",
+        "Secili": "Dipilih",
+        "Plani Cikar": "Hapus dari rencana",
+        "Plana Ekle": "Tambahkan ke rencana",
+        "Temizligi Onayla": "Konfirmasi Pembersihan",
+        "Cop Kutusuna Tasi": "Pindah ke Sampah",
+        "Iptal": "Batal",
+        "%@ kategori, %@ alan Cop Kutusu'na tasınacak. Docker prune seciliyse bu islem doğrudan calisacak.": "%@ kategori dan %@ data akan dipindahkan ke Sampah. Docker prune akan langsung dijalankan jika dipilih.",
+        "Henuz aktivite yok.": "Belum ada aktivitas."
+    ]
+
+    private static let dutch: [String: String] = [
+        "Kontrol Merkezi": "Controlecentrum",
+        "Temizlik Planı": "Opschoningsplan",
+        "Otomasyon": "Automatisering",
+        "Raporlar": "Rapporten",
+        "Guvenli": "Veilig",
+        "Inceleme": "Controleren",
+        "Manuel": "Handmatig",
+        "Kullanici Cache": "Gebruikerscache",
+        "Log ve Crash Arsivleri": "Log- en crasharchieven",
+        "Mail Indirmeleri": "Mail-downloads",
+        "iOS Finder Yedekleri": "iOS Finder-back-ups",
+        "Buyuk Download Dosyalari": "Grote downloadbestanden",
+        "Docker Sistem Verisi": "Docker-systeemgegevens",
+        "Gunluk": "Dagelijks",
+        "Haftalik": "Wekelijks",
+        "Aylik": "Maandelijks",
+        "Hazir": "Gereed",
+        "Temizlik calisiyor": "Opschoning bezig",
+        "Tarama calisiyor": "Scan bezig",
+        "Henuz taranmadi": "Nog niet gescand",
+        "Saglik Skoru": "Gezondheidsscore",
+        "Secili geri kazanım": "Geselecteerde winst",
+        "Toplam aday alan": "Totale kandidaatruimte",
+        "Bir sonraki bakim": "Volgend onderhoud",
+        "Canli Durum": "Live-status",
+        "Taraniyor": "Scannen",
+        "Akilli Tarama": "Slimme scan",
+        "Temizleniyor": "Opschonen",
+        "Secilenleri Temizle": "Geselecteerde opschonen",
+        "Guvenli mod": "Veilige modus",
+        "Derin tarama": "Diepe scan",
+        "Snapshot": "Snapshot",
+        "Bakim Ayarlari": "Onderhoudsinstellingen",
+        "Bakim Ritmi": "Onderhoudsritme",
+        "Rapor Ozeti": "Rapportsamenvatting",
+        "Raporu Disa Aktar": "Rapport exporteren",
+        "Rapor Dosyasini Ac": "Rapportbestand openen",
+        "Artefaktlar": "Artefacten",
+        "Rapor": "Rapport",
+        "Secili": "Geselecteerd",
+        "Plani Cikar": "Uit plan verwijderen",
+        "Plana Ekle": "Aan plan toevoegen",
+        "Temizligi Onayla": "Opschoning bevestigen",
+        "Cop Kutusuna Tasi": "Naar prullenmand",
+        "Iptal": "Annuleren",
+        "%@ kategori, %@ alan Cop Kutusu'na tasınacak. Docker prune seciliyse bu islem doğrudan calisacak.": "%@ categorieen en %@ aan data worden naar de prullenmand verplaatst. Docker prune wordt direct uitgevoerd indien geselecteerd.",
+        "Henuz aktivite yok.": "Nog geen activiteit."
+    ]
+
+    private static let arabic: [String: String] = [
+        "Kontrol Merkezi": "مركز التحكم",
+        "Temizlik Planı": "خطة التنظيف",
+        "Otomasyon": "الأتمتة",
+        "Raporlar": "التقارير",
+        "Guvenli": "آمن",
+        "Inceleme": "مراجعة",
+        "Manuel": "يدوي",
+        "Kullanici Cache": "ذاكرة المستخدم المؤقتة",
+        "Log ve Crash Arsivleri": "سجلات وأرشيفات الأعطال",
+        "Mail Indirmeleri": "تنزيلات البريد",
+        "iOS Finder Yedekleri": "نسخ Finder الاحتياطية لـ iOS",
+        "Buyuk Download Dosyalari": "ملفات تنزيل كبيرة",
+        "Docker Sistem Verisi": "بيانات نظام Docker",
+        "Gunluk": "يومي",
+        "Haftalik": "أسبوعي",
+        "Aylik": "شهري",
+        "Hazir": "جاهز",
+        "Temizlik calisiyor": "التنظيف جارٍ",
+        "Tarama calisiyor": "الفحص جارٍ",
+        "Henuz taranmadi": "لم يتم الفحص بعد",
+        "Saglik Skoru": "درجة الصحة",
+        "Secili geri kazanım": "المساحة المحددة",
+        "Toplam aday alan": "إجمالي المساحة المحتملة",
+        "Bir sonraki bakim": "الصيانة التالية",
+        "Canli Durum": "الحالة المباشرة",
+        "Taraniyor": "يتم الفحص",
+        "Akilli Tarama": "فحص ذكي",
+        "Temizleniyor": "يتم التنظيف",
+        "Secilenleri Temizle": "تنظيف المحدد",
+        "Guvenli mod": "الوضع الآمن",
+        "Derin tarama": "فحص عميق",
+        "Snapshot": "لقطة",
+        "Bakim Ayarlari": "إعدادات الصيانة",
+        "Bakim Ritmi": "وتيرة الصيانة",
+        "Rapor Ozeti": "ملخص التقرير",
+        "Raporu Disa Aktar": "تصدير التقرير",
+        "Rapor Dosyasini Ac": "فتح ملف التقرير",
+        "Artefaktlar": "المخرجات",
+        "Rapor": "تقرير",
+        "Secili": "محدد",
+        "Plani Cikar": "إزالة من الخطة",
+        "Plana Ekle": "إضافة إلى الخطة",
+        "Temizligi Onayla": "تأكيد التنظيف",
+        "Cop Kutusuna Tasi": "نقل إلى المهملات",
+        "Iptal": "إلغاء",
+        "%@ kategori, %@ alan Cop Kutusu'na tasınacak. Docker prune seciliyse bu islem doğrudan calisacak.": "سيتم نقل %@ تصنيفات و%@ من البيانات إلى المهملات. سيتم تشغيل Docker prune مباشرةً إذا كان محدداً.",
+        "Henuz aktivite yok.": "لا يوجد نشاط حتى الآن."
+    ]
+}
