@@ -1,0 +1,56 @@
+name: macOS Release
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: "Publish artifacts to a GitHub Release"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos-arm64:
+    runs-on: macos-26
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build macOS arm64 app bundle and installer
+        env:
+          BUILD_ARCH: arm64
+        run: ./build_app.sh
+
+      - name: Archive app bundle
+        run: ditto -c -k --keepParent dist/MacCleanerPro.app dist/MacCleanerPro.app.zip
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-arm64-release
+          path: |
+            dist/MacCleanerPro.app.zip
+            dist/MacCleanerPro.pkg
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.create_release)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || format('manual-{0}', github.run_number) }}
+        run: |
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release upload "$TAG_NAME" dist/MacCleanerPro.app.zip dist/MacCleanerPro.pkg --clobber
+          else
+            gh release create "$TAG_NAME" dist/MacCleanerPro.app.zip dist/MacCleanerPro.pkg --title "$TAG_NAME"
+          fi
