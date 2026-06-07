@@ -435,7 +435,6 @@ private enum LanguagePack {
         "Docker prune calistirilamadi: %@": "Docker prune could not run: %@",
         "Versiyon: %@": "Version: %@",
         "Arka plan bakim: %@": "Background maintenance: %@",
-        "Kurulum profili uygulandi: %@": "Setup profile applied: %@",
         "Temizligi Onayla": "Confirm Cleanup",
         "Cop Kutusuna Tasi": "Move to Trash",
         "Iptal": "Cancel",
