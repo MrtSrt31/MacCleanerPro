@@ -84,6 +84,7 @@ enum SafetyLevel: String, CaseIterable, Codable {
 enum CleanupActionKind: String, Codable {
     case trash
     case dockerPrune
+    case permanentDelete
 }
 
 enum CleanupCategory: String, CaseIterable, Identifiable, Codable {
@@ -95,6 +96,14 @@ enum CleanupCategory: String, CaseIterable, Identifiable, Codable {
     case iosBackups
     case largeDownloads
     case docker
+    case trashBin
+    case systemJunk
+    case browserCaches
+    case xcodeArchives
+    case packageCaches
+    case largeOldFiles
+    case appLeftovers
+    case photoJunk
 
     var id: Self { self }
 
@@ -116,6 +125,22 @@ enum CleanupCategory: String, CaseIterable, Identifiable, Codable {
             return L10n.tr("Buyuk Download Dosyalari")
         case .docker:
             return L10n.tr("Docker Sistem Verisi")
+        case .trashBin:
+            return L10n.tr("Cop Kutusu")
+        case .systemJunk:
+            return L10n.tr("Sistem Gecici Dosyalari")
+        case .browserCaches:
+            return L10n.tr("Tarayici Onbellekleri")
+        case .xcodeArchives:
+            return L10n.tr("Xcode Arsivleri")
+        case .packageCaches:
+            return L10n.tr("Gelistirici Paket Onbellekleri")
+        case .largeOldFiles:
+            return L10n.tr("Buyuk ve Eski Kullanici Dosyalari")
+        case .appLeftovers:
+            return L10n.tr("Kaldirilmis Uygulama Artiklari")
+        case .photoJunk:
+            return L10n.tr("Fotograf Kutuphanesi Onbellegi")
         }
     }
 
@@ -137,6 +162,22 @@ enum CleanupCategory: String, CaseIterable, Identifiable, Codable {
             return L10n.tr("Downloads altinda buyuk ve eski dosyalar.")
         case .docker:
             return L10n.tr("Docker CLI varsa reclaimable alan taranir ve prune komutu calistirilabilir.")
+        case .trashBin:
+            return L10n.tr("Kalici olarak silinmeyi bekleyen ogeler; bu kategori geri donusu olmayan temizlik yapar.")
+        case .systemJunk:
+            return L10n.tr("TMPDIR altinda biriken eski gecici dosyalar ve onbellek artiklari.")
+        case .browserCaches:
+            return L10n.tr("Safari, Chrome, Firefox ve diger tarayicilarin yerel onbellek klasorleri.")
+        case .xcodeArchives:
+            return L10n.tr("Gecmis derleme ve dagitim arsivleri (.xcarchive); yeniden gerekebilir, once inceleyin.")
+        case .packageCaches:
+            return L10n.tr("Homebrew, npm, pip, cargo, go ve benzeri arac onbellekleri; yeniden indirilebilir.")
+        case .largeOldFiles:
+            return L10n.tr("Belgeler, Masaustu, Filmler, Muzik ve Resimler altinda uzun suredir acilmamis buyuk dosyalar.")
+        case .appLeftovers:
+            return L10n.tr("Artik yuklu olmayan uygulamalara ait Library klasorlerinde kalan veriler; secmeden once gozden gecirin.")
+        case .photoJunk:
+            return L10n.tr("Photos kutuphanesindeki turetilmis onizleme ve onbellek verisi; bu alan bilgi amaclidir, dogrudan silinmez.")
         }
     }
 
@@ -158,16 +199,32 @@ enum CleanupCategory: String, CaseIterable, Identifiable, Codable {
             return "arrow.down.circle.fill"
         case .docker:
             return "shippingbox.circle.fill"
+        case .trashBin:
+            return "trash.fill"
+        case .systemJunk:
+            return "timer"
+        case .browserCaches:
+            return "globe"
+        case .xcodeArchives:
+            return "archivebox.fill"
+        case .packageCaches:
+            return "terminal.fill"
+        case .largeOldFiles:
+            return "tray.full.fill"
+        case .appLeftovers:
+            return "folder.badge.questionmark"
+        case .photoJunk:
+            return "photo.stack"
         }
     }
 
     var safety: SafetyLevel {
         switch self {
-        case .userCaches, .logArchives, .derivedData, .deviceSupport:
+        case .userCaches, .logArchives, .derivedData, .deviceSupport, .systemJunk, .browserCaches, .packageCaches:
             return .safe
-        case .mailDownloads, .iosBackups, .largeDownloads:
+        case .mailDownloads, .iosBackups, .largeDownloads, .trashBin, .xcodeArchives, .largeOldFiles, .appLeftovers:
             return .review
-        case .docker:
+        case .docker, .photoJunk:
             return .manual
         }
     }
@@ -180,6 +237,8 @@ enum CleanupCategory: String, CaseIterable, Identifiable, Codable {
         switch self {
         case .docker:
             return .dockerPrune
+        case .trashBin:
+            return .permanentDelete
         default:
             return .trash
         }
@@ -191,6 +250,22 @@ enum CleanupCategory: String, CaseIterable, Identifiable, Codable {
             return L10n.tr("Docker reclaimable alan bulunmadi veya Docker CLI erisilebilir degil.")
         case .largeDownloads:
             return L10n.tr("Esik kosullarini asan buyuk ve eski dosya bulunmadi.")
+        case .trashBin:
+            return L10n.tr("Cop Kutusu zaten bos.")
+        case .systemJunk:
+            return L10n.tr("Eski gecici dosya bulunamadi.")
+        case .browserCaches:
+            return L10n.tr("Tarayici onbellek klasoru bulunamadi.")
+        case .xcodeArchives:
+            return L10n.tr("Xcode arsivi bulunamadi.")
+        case .packageCaches:
+            return L10n.tr("Paket yoneticisi onbellegi bulunamadi.")
+        case .largeOldFiles:
+            return L10n.tr("Esik kosullarini asan buyuk ve eski kullanici dosyasi bulunamadi.")
+        case .appLeftovers:
+            return L10n.tr("Sahipsiz uygulama artigi bulunamadi.")
+        case .photoJunk:
+            return L10n.tr("Photos kutuphanesi bulunamadi veya onbellek verisi yok.")
         default:
             return L10n.tr("Bu kategori icin temizlenebilir icerik bulunmadi.")
         }

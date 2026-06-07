@@ -62,7 +62,7 @@ enum CleanupService {
         progress: @escaping (ScanStageUpdate) -> Void
     ) throws -> ScanBundle {
         let home = FileManager.default.homeDirectoryForCurrentUser
-        let totalStages = 8.0
+        let totalStages = 16.0
         var completedStages = 0.0
 
         func advance(title: String, detail: String) {
@@ -110,8 +110,43 @@ enum CleanupService {
         advance(title: L10n.tr("Docker ozeti alinıyor"), detail: L10n.tr("Docker CLI varsa reclaimable alan ve prune secenegi hazirlaniyor."))
         let docker = scanDocker()
 
+        try checkCancellation()
+        advance(title: L10n.tr("Cop Kutusu kontrol ediliyor"), detail: L10n.tr("Kalici silme icin Cop Kutusu icerigi olculuyor."))
+        let trashBin = scanTrashBin(home: home)
+
+        try checkCancellation()
+        advance(title: L10n.tr("Sistem gecici dosyalari taraniyor"), detail: L10n.tr("TMPDIR altindaki eski gecici dosyalar tespit ediliyor."))
+        let systemJunk = scanSystemJunk()
+
+        try checkCancellation()
+        advance(title: L10n.tr("Tarayici onbellekleri olculuyor"), detail: L10n.tr("Safari, Chrome ve Firefox onbellek klasorleri taraniyor."))
+        let browserCaches = scanBrowserCaches(home: home)
+
+        try checkCancellation()
+        advance(title: L10n.tr("Xcode arsivleri taraniyor"), detail: L10n.tr("Gecmis .xcarchive paketleri gercek boyutlariyla olculuyor."))
+        let xcodeArchives = scanXcodeArchives(home: home)
+
+        try checkCancellation()
+        advance(title: L10n.tr("Gelistirici paket onbellekleri taraniyor"), detail: L10n.tr("Homebrew, npm, pip ve cargo onbellek klasorleri olculuyor."))
+        let packageCaches = scanPackageCaches(home: home)
+
+        try checkCancellation()
+        advance(title: L10n.tr("Buyuk ve eski dosyalar taraniyor"), detail: L10n.tr("Belgeler, Masaustu ve medya klasorlerinde esik disindaki dosyalar bulunuyor."))
+        let largeOldFiles = scanLargeOldFiles(home: home)
+
+        try checkCancellation()
+        advance(title: L10n.tr("Uygulama artiklari kontrol ediliyor"), detail: L10n.tr("Yuklu uygulama listesiyle eslesmeyen Library klasorleri tespit ediliyor."))
+        let appLeftovers = scanAppLeftovers(home: home)
+
+        try checkCancellation()
+        advance(title: L10n.tr("Fotograf kutuphanesi onbellegi olculuyor"), detail: L10n.tr("Photos turetilmis onizleme verisi bilgi amacli olculuyor."))
+        let photoJunk = scanPhotoJunk(home: home)
+
         let diskSummary = try filesystemSummary(home: home)
-        let results = [caches, logs, derivedData, deviceSupport, mailDownloads, iosBackups, downloads, docker]
+        let results = [
+            caches, logs, derivedData, deviceSupport, mailDownloads, iosBackups, downloads, docker,
+            trashBin, systemJunk, browserCaches, xcodeArchives, packageCaches, largeOldFiles, appLeftovers, photoJunk,
+        ]
             .sorted { lhs, rhs in
                 lhs.bytes != rhs.bytes ? lhs.bytes > rhs.bytes : lhs.category.title < rhs.category.title
             }
@@ -160,6 +195,24 @@ enum CleanupService {
                             continue
                         }
                         warnings.append(L10n.format("%@ tasinamadi: %@", itemURL.lastPathComponent, error.localizedDescription))
+                    }
+                }
+
+            case .permanentDelete:
+                // Items here (e.g. Trash contents) are deleted outright instead of being
+                // moved to Trash again — this mirrors Finder's "Empty Trash" and is irreversible.
+                for itemURL in result.urls {
+                    let itemBytes = allocatedSize(of: itemURL)
+                    do {
+                        try fileManager.removeItem(at: itemURL)
+                        cleanedItems += 1
+                        cleanedBytes += itemBytes
+                    } catch {
+                        let nsError = error as NSError
+                        if nsError.domain == NSCocoaErrorDomain && nsError.code == NSFileNoSuchFileError {
+                            continue
+                        }
+                        warnings.append(L10n.format("%@ silinemedi: %@", itemURL.lastPathComponent, error.localizedDescription))
                     }
                 }
 
@@ -324,6 +377,278 @@ enum CleanupService {
                 let isFile = resourceValues.isRegularFile ?? false
                 return isFile && fileSize >= thresholdBytes && itemDate <= cutoffDate
             }
+        )
+    }
+
+    private static func scanTrashBin(home: URL) -> CleanupScanResult {
+        buildDirectoryResult(
+            category: .trashBin,
+            roots: [home.appendingPathComponent(".Trash", isDirectory: true)]
+        )
+    }
+
+    // Scans the per-user TMPDIR (/private/var/folders/.../T) for files that have
+    // not been touched in a few days — fresh temp files may still be in active use.
+    private static func scanSystemJunk() -> CleanupScanResult {
+        let tmpRoot = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+        let cutoffDate = Calendar.current.date(byAdding: .day, value: -3, to: Date()) ?? .distantPast
+
+        return buildDirectoryResult(
+            category: .systemJunk,
+            roots: [tmpRoot],
+            filter: { _, resourceValues in
+                let itemDate = resourceValues.contentModificationDate ?? .distantFuture
+                return itemDate <= cutoffDate
+            }
+        )
+    }
+
+    private static func scanBrowserCaches(home: URL) -> CleanupScanResult {
+        let relativePaths = [
+            "Library/Caches/com.apple.Safari",
+            "Library/Containers/com.apple.Safari/Data/Library/Caches",
+            "Library/Caches/Google/Chrome",
+            "Library/Caches/Google/Chrome Beta",
+            "Library/Caches/Google/Chrome Canary",
+            "Library/Caches/com.google.Chrome",
+            "Library/Caches/BraveSoftware/Brave-Browser",
+            "Library/Caches/com.brave.Browser",
+            "Library/Caches/Firefox",
+            "Library/Caches/Mozilla/Firefox",
+            "Library/Caches/com.microsoft.edgemac",
+            "Library/Caches/company.thebrowser.Browser",
+            "Library/Caches/com.operasoftware.Opera",
+            "Library/Caches/com.vivaldi.Vivaldi",
+        ]
+
+        return buildDirectoryResult(
+            category: .browserCaches,
+            roots: relativePaths.map { home.appendingPathComponent($0, isDirectory: true) }
+        )
+    }
+
+    private static func scanXcodeArchives(home: URL) -> CleanupScanResult {
+        buildDirectoryResult(
+            category: .xcodeArchives,
+            roots: [home.appendingPathComponent("Library/Developer/Xcode/Archives", isDirectory: true)]
+        )
+    }
+
+    private static func scanPackageCaches(home: URL) -> CleanupScanResult {
+        let relativePaths = [
+            "Library/Caches/Homebrew",
+            "Library/Caches/pip",
+            "Library/Caches/Yarn",
+            "Library/Caches/CocoaPods",
+            "Library/Caches/go-build",
+            "Library/Caches/com.apple.dt.Xcode/SymbolCache",
+            ".npm/_cacache",
+            ".cache/pip",
+            ".cargo/registry/cache",
+            "go/pkg/mod/cache",
+            ".gradle/caches",
+            ".bundle/cache",
+        ]
+
+        return buildDirectoryResult(
+            category: .packageCaches,
+            roots: relativePaths.map { home.appendingPathComponent($0, isDirectory: true) }
+        )
+    }
+
+    // Recursively scans common personal-file folders for large files that have not
+    // been modified in a long time — distinct from the Downloads-only large-file scan.
+    private static func scanLargeOldFiles(home: URL) -> CleanupScanResult {
+        let thresholdBytes: Int64 = 200 * 1_048_576
+        let cutoffDate = Calendar.current.date(byAdding: .day, value: -45, to: Date()) ?? .distantPast
+        let relativeRoots = ["Documents", "Desktop", "Movies", "Music", "Pictures"]
+        let keys: Set<URLResourceKey> = [
+            .isRegularFileKey,
+            .isSymbolicLinkKey,
+            .contentModificationDateKey,
+            .fileSizeKey,
+            .fileAllocatedSizeKey,
+            .totalFileAllocatedSizeKey,
+        ]
+
+        var scannedRoots: [String] = []
+        var sizedItems: [(url: URL, bytes: Int64)] = []
+
+        for relativeRoot in relativeRoots {
+            let root = home.appendingPathComponent(relativeRoot, isDirectory: true)
+            guard FileManager.default.fileExists(atPath: root.path) else { continue }
+            scannedRoots.append(root.path)
+
+            guard let enumerator = FileManager.default.enumerator(
+                at: root,
+                includingPropertiesForKeys: Array(keys),
+                options: [.skipsPackageDescendants],
+                errorHandler: { _, _ in true }
+            ) else { continue }
+
+            for case let fileURL as URL in enumerator {
+                guard let values = try? fileURL.resourceValues(forKeys: keys) else { continue }
+                guard values.isSymbolicLink != true, values.isRegularFile == true else { continue }
+
+                let bytes = Int64(values.totalFileAllocatedSize ?? values.fileAllocatedSize ?? 0)
+                let modified = values.contentModificationDate ?? .distantFuture
+                guard bytes >= thresholdBytes, modified <= cutoffDate else { continue }
+
+                sizedItems.append((fileURL, bytes))
+            }
+        }
+
+        sizedItems.sort { lhs, rhs in
+            lhs.bytes != rhs.bytes ? lhs.bytes > rhs.bytes : lhs.url.lastPathComponent < rhs.url.lastPathComponent
+        }
+
+        let notes = sizedItems.isEmpty
+            ? [CleanupCategory.largeOldFiles.emptyStateNote]
+            : sizedItems.prefix(3).map { "\($0.url.lastPathComponent) · \($0.bytes.formattedBytes)" }
+
+        return CleanupScanResult(
+            category: .largeOldFiles,
+            bytes: sizedItems.reduce(0) { $0 + $1.bytes },
+            itemCount: sizedItems.count,
+            itemPaths: sizedItems.map { $0.url.path },
+            notes: notes,
+            shellCommand: nil,
+            scannedRoots: scannedRoots,
+            lastUpdated: Date()
+        )
+    }
+
+    // Flags Library data folders whose name looks like a bundle identifier but no
+    // longer corresponds to any application installed in /Applications or ~/Applications.
+    // Conservative by design: skips Apple's own identifiers and anything under 1 MB.
+    private static func scanAppLeftovers(home: URL) -> CleanupScanResult {
+        let installedBundleIDs = installedApplicationBundleIdentifiers()
+        let leftoverRoots = [
+            home.appendingPathComponent("Library/Application Support", isDirectory: true),
+            home.appendingPathComponent("Library/Caches", isDirectory: true),
+            home.appendingPathComponent("Library/Saved Application State", isDirectory: true),
+            home.appendingPathComponent("Library/HTTPStorages", isDirectory: true),
+            home.appendingPathComponent("Library/WebKit", isDirectory: true),
+        ]
+        let minimumBytes: Int64 = 1_048_576
+
+        var scannedRoots: [String] = []
+        var sizedItems: [(url: URL, bytes: Int64)] = []
+        var seenPaths = Set<String>()
+
+        for root in leftoverRoots where FileManager.default.fileExists(atPath: root.path) {
+            scannedRoots.append(root.path)
+
+            for child in directChildren(of: root) {
+                var identifier = child.lastPathComponent
+                if identifier.hasSuffix(".savedState") {
+                    identifier = String(identifier.dropLast(".savedState".count))
+                }
+
+                guard looksLikeBundleIdentifier(identifier) else { continue }
+                guard !identifier.hasPrefix("com.apple.") else { continue }
+                guard !installedBundleIDs.contains(where: {
+                    identifier == $0 || identifier.hasPrefix($0 + ".") || $0.hasPrefix(identifier + ".")
+                }) else { continue }
+                guard seenPaths.insert(child.path).inserted else { continue }
+
+                let bytes = allocatedSize(of: child)
+                guard bytes >= minimumBytes else { continue }
+                sizedItems.append((child, bytes))
+            }
+        }
+
+        sizedItems.sort { lhs, rhs in
+            lhs.bytes != rhs.bytes ? lhs.bytes > rhs.bytes : lhs.url.lastPathComponent < rhs.url.lastPathComponent
+        }
+
+        let notes = sizedItems.isEmpty
+            ? [CleanupCategory.appLeftovers.emptyStateNote]
+            : sizedItems.prefix(3).map { "\($0.url.lastPathComponent) · \($0.bytes.formattedBytes)" }
+
+        return CleanupScanResult(
+            category: .appLeftovers,
+            bytes: sizedItems.reduce(0) { $0 + $1.bytes },
+            itemCount: sizedItems.count,
+            itemPaths: sizedItems.map { $0.url.path },
+            notes: notes,
+            shellCommand: nil,
+            scannedRoots: scannedRoots,
+            lastUpdated: Date()
+        )
+    }
+
+    // Reverse-DNS bundle identifiers have at least three dot-separated, alphanumeric components.
+    private static func looksLikeBundleIdentifier(_ name: String) -> Bool {
+        let parts = name.split(separator: ".")
+        guard parts.count >= 3 else { return false }
+        return parts.allSatisfy { part in
+            !part.isEmpty && part.allSatisfy { $0.isLetter || $0.isNumber || $0 == "-" || $0 == "_" }
+        }
+    }
+
+    private static func installedApplicationBundleIdentifiers() -> Set<String> {
+        let searchRoots = [
+            URL(fileURLWithPath: "/Applications", isDirectory: true),
+            URL(fileURLWithPath: "/System/Applications", isDirectory: true),
+            FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications", isDirectory: true),
+        ]
+
+        var identifiers = Set<String>()
+
+        for root in searchRoots {
+            guard let apps = try? FileManager.default.contentsOfDirectory(
+                at: root,
+                includingPropertiesForKeys: nil,
+                options: [.skipsSubdirectoryDescendants]
+            ) else { continue }
+
+            for appURL in apps where appURL.pathExtension == "app" {
+                let infoPlistURL = appURL.appendingPathComponent("Contents/Info.plist")
+                guard let data = try? Data(contentsOf: infoPlistURL),
+                      let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any],
+                      let bundleID = plist["CFBundleIdentifier"] as? String
+                else { continue }
+                identifiers.insert(bundleID)
+            }
+        }
+
+        return identifiers
+    }
+
+    // Reports the size of derived/cache data inside the Photos library purely for visibility.
+    // Deliberately informational-only (no itemPaths/shellCommand) — touching files inside a
+    // .photoslibrary bundle directly risks corrupting the library, so no delete action is offered.
+    private static func scanPhotoJunk(home: URL) -> CleanupScanResult {
+        let relativePaths = [
+            "Pictures/Photos Library.photoslibrary/database/Caches",
+            "Pictures/Photos Library.photoslibrary/resources/derivatives",
+            "Pictures/Photos Library.photoslibrary/private/com.apple.Safari",
+        ]
+
+        var scannedRoots: [String] = []
+        var notes: [String] = []
+        var totalBytes: Int64 = 0
+
+        for relativePath in relativePaths {
+            let url = home.appendingPathComponent(relativePath, isDirectory: true)
+            guard FileManager.default.fileExists(atPath: url.path) else { continue }
+
+            let bytes = allocatedSize(of: url)
+            scannedRoots.append(url.path)
+            totalBytes += bytes
+            notes.append("\(url.lastPathComponent) · \(bytes.formattedBytes)")
+        }
+
+        return CleanupScanResult(
+            category: .photoJunk,
+            bytes: totalBytes,
+            itemCount: scannedRoots.count,
+            itemPaths: [],
+            notes: notes.isEmpty ? [CleanupCategory.photoJunk.emptyStateNote] : notes,
+            shellCommand: nil,
+            scannedRoots: scannedRoots,
+            lastUpdated: Date()
         )
     }
 
