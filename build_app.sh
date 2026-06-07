@@ -4,6 +4,8 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_NAME="MacCleanerPro"
+BUILD_ARCH="${BUILD_ARCH:-arm64}"
+BUILD_CONFIGURATION="release"
 APP_DIR="$ROOT_DIR/dist/$APP_NAME.app"
 CONTENTS_DIR="$APP_DIR/Contents"
 MACOS_DIR="$CONTENTS_DIR/MacOS"
@@ -11,13 +13,21 @@ RESOURCES_DIR="$CONTENTS_DIR/Resources"
 PKG_ROOT="$ROOT_DIR/dist/pkgroot"
 PKG_PATH="$ROOT_DIR/dist/$APP_NAME.pkg"
 
-printf 'Building Swift package...\n'
-swift build -c release --package-path "$ROOT_DIR"
+printf 'Building Swift package for macOS %s...\n' "$BUILD_ARCH"
+swift build \
+  -c "$BUILD_CONFIGURATION" \
+  --arch "$BUILD_ARCH" \
+  --package-path "$ROOT_DIR"
+BIN_DIR="$(swift build \
+  -c "$BUILD_CONFIGURATION" \
+  --arch "$BUILD_ARCH" \
+  --package-path "$ROOT_DIR" \
+  --show-bin-path)"
 
 rm -rf "$APP_DIR" "$PKG_ROOT" "$PKG_PATH"
 mkdir -p "$MACOS_DIR" "$RESOURCES_DIR"
 
-cp "$ROOT_DIR/.build/release/$APP_NAME" "$MACOS_DIR/$APP_NAME"
+cp "$BIN_DIR/$APP_NAME" "$MACOS_DIR/$APP_NAME"
 cp "$ROOT_DIR/Resources/Info.plist" "$CONTENTS_DIR/Info.plist"
 
 if command -v codesign >/dev/null 2>&1; then
