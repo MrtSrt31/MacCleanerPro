@@ -62,7 +62,7 @@ enum CleanupService {
         progress: @escaping (ScanStageUpdate) -> Void
     ) throws -> ScanBundle {
         let home = FileManager.default.homeDirectoryForCurrentUser
-        let totalStages = 16.0
+        let totalStages = 17.0
         var completedStages = 0.0
 
         func advance(title: String, detail: String) {
@@ -142,10 +142,15 @@ enum CleanupService {
         advance(title: L10n.tr("Fotograf kutuphanesi onbellegi olculuyor"), detail: L10n.tr("Photos turetilmis onizleme verisi bilgi amacli olculuyor."))
         let photoJunk = scanPhotoJunk(home: home)
 
+        try checkCancellation()
+        advance(title: L10n.tr("Proje derleme artiklari taraniyor"), detail: L10n.tr("node_modules, .build, target, Pods ve benzeri klasorler gercek boyutlariyla taraniyor."))
+        let projectArtifacts = scanProjectArtifacts(home: home)
+
         let diskSummary = try filesystemSummary(home: home)
         let results = [
             caches, logs, derivedData, deviceSupport, mailDownloads, iosBackups, downloads, docker,
             trashBin, systemJunk, browserCaches, xcodeArchives, packageCaches, largeOldFiles, appLeftovers, photoJunk,
+            projectArtifacts,
         ]
             .sorted { lhs, rhs in
                 lhs.bytes != rhs.bytes ? lhs.bytes > rhs.bytes : lhs.category.title < rhs.category.title
@@ -646,6 +651,94 @@ enum CleanupService {
             itemCount: scannedRoots.count,
             itemPaths: [],
             notes: notes.isEmpty ? [CleanupCategory.photoJunk.emptyStateNote] : notes,
+            shellCommand: nil,
+            scannedRoots: scannedRoots,
+            lastUpdated: Date()
+        )
+    }
+
+    // Finds reproducible project build/dependency folders (node_modules, .build,
+    // target, Pods, dist, .next, .gradle, venv, __pycache__...) under common
+    // development roots, bounded by depth to avoid scanning the whole disk.
+    private static func scanProjectArtifacts(home: URL) -> CleanupScanResult {
+        let artifactNames: Set<String> = [
+            "node_modules", ".build", "target", "Pods", "dist", ".next",
+            ".gradle", "__pycache__", ".venv", "venv", "build", ".dart_tool",
+            ".pytest_cache", ".turbo", ".parcel-cache",
+        ]
+        let skipDescendNames: Set<String> = [
+            ".git", "Library", ".Trash", ".cache",
+        ]
+        let candidateRootNames = [
+            "Developer", "Projects", "Documents", "Desktop", "Code", "code",
+            "workspace", "Workspace", "repos", "Sites", "dev", "src",
+        ]
+        let maxDepth = 6
+
+        var scannedRoots: [String] = []
+        var sizedItems: [(url: URL, bytes: Int64)] = []
+        var seenPaths = Set<String>()
+
+        let fileManager = FileManager.default
+        let resourceKeys: Set<URLResourceKey> = [.isDirectoryKey, .isSymbolicLinkKey]
+
+        func walk(_ directory: URL, depth: Int) {
+            guard depth <= maxDepth else { return }
+            guard let children = try? fileManager.contentsOfDirectory(
+                at: directory,
+                includingPropertiesForKeys: Array(resourceKeys),
+                options: []
+            ) else { return }
+
+            for child in children {
+                guard let values = try? child.resourceValues(forKeys: resourceKeys) else { continue }
+                guard values.isSymbolicLink != true, values.isDirectory == true else { continue }
+
+                let name = child.lastPathComponent
+
+                if artifactNames.contains(name) {
+                    guard seenPaths.insert(child.path).inserted else { continue }
+                    let bytes = allocatedSize(of: child)
+                    if bytes > 0 {
+                        sizedItems.append((child, bytes))
+                    }
+                    continue
+                }
+
+                guard !skipDescendNames.contains(name) else { continue }
+                walk(child, depth: depth + 1)
+            }
+        }
+
+        var roots = candidateRootNames
+            .map { home.appendingPathComponent($0, isDirectory: true) }
+            .filter { fileManager.fileExists(atPath: $0.path) }
+
+        // Always include the user's home root itself (depth 0) so projects placed
+        // directly under ~ are still found, without descending into ~/Library.
+        if roots.isEmpty {
+            roots = [home]
+        }
+
+        for root in roots {
+            scannedRoots.append(root.path)
+            walk(root, depth: 0)
+        }
+
+        sizedItems.sort { lhs, rhs in
+            lhs.bytes != rhs.bytes ? lhs.bytes > rhs.bytes : lhs.url.path < rhs.url.path
+        }
+
+        let notes = sizedItems.isEmpty
+            ? [CleanupCategory.projectArtifacts.emptyStateNote]
+            : sizedItems.prefix(3).map { "\($0.url.lastPathComponent) · \($0.bytes.formattedBytes)" }
+
+        return CleanupScanResult(
+            category: .projectArtifacts,
+            bytes: sizedItems.reduce(0) { $0 + $1.bytes },
+            itemCount: sizedItems.count,
+            itemPaths: sizedItems.map { $0.url.path },
+            notes: notes,
             shellCommand: nil,
             scannedRoots: scannedRoots,
             lastUpdated: Date()

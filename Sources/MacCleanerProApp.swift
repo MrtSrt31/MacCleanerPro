@@ -14,8 +14,6 @@ struct MacCleanerProApp: App {
                 .environment(\.locale, localization.locale)
                 .environment(\.layoutDirection, localization.effectiveLanguage.isRightToLeft ? .rightToLeft : .leftToRight)
         }
-        .windowStyle(.hiddenTitleBar)
-        .windowToolbarStyle(.unifiedCompact)
         .commands {
             CommandGroup(replacing: .appInfo) {
                 Button("MacCleanerPro Hakkında") {
@@ -49,6 +47,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         // Request notification permission early so the system prompt appears at launch.
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
+
+        for window in NSApp.windows {
+            window.titlebarAppearsTransparent = true
+        }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {

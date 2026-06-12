@@ -20,29 +20,32 @@ struct ContentView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            LinearGradient(
-                colors: viewModel.themeAccent.backgroundGradient,
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-            .animation(.easeInOut(duration: 0.4), value: viewModel.themeAccent.rawValue)
-
-            HStack(spacing: 0) {
+        ZStack(alignment: .topLeading) {
+            HStack(alignment: .top, spacing: 0) {
                 sidebar
                 Divider().overlay(Color.white.opacity(0.35))
                 mainArea
             }
             .padding(18)
+            .padding(.top, 28)
 
             if let toastMessage = viewModel.toastMessage {
                 toast(message: toastMessage)
                     .padding(.trailing, 28)
                     .padding(.bottom, 24)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                    .allowsHitTesting(false)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+        .background(
+            LinearGradient(
+                colors: viewModel.themeAccent.backgroundGradient,
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .animation(.easeInOut(duration: 0.4), value: viewModel.themeAccent.rawValue)
+        )
         .frame(minWidth: 1220, minHeight: 840)
         .task {
             viewModel.performInitialScanIfNeeded()
@@ -71,7 +74,10 @@ struct ContentView: View {
     }
 
     private var sidebar: some View {
+        ScrollView {
         VStack(alignment: .leading, spacing: 18) {
+            Spacer().frame(height: 14)
+
             GlassCard {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack(spacing: 12) {
@@ -172,6 +178,7 @@ struct ContentView: View {
                 }
             }
         }
+        }
         .frame(width: sidebarWidth)
     }
 
@@ -179,6 +186,7 @@ struct ContentView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 header
+                    .padding(.top, 26)
 
                 Group {
                     switch viewModel.selectedSection {
@@ -190,6 +198,14 @@ struct ContentView: View {
                         automationSection
                     case .reports:
                         reportsSection
+                    case .monitor:
+                        SystemMonitorView(viewModel: viewModel)
+                    case .diskAnalyzer:
+                        DiskAnalyzerView(viewModel: viewModel)
+                    case .uninstaller:
+                        UninstallerView(viewModel: viewModel)
+                    case .maintenance:
+                        MaintenanceView(viewModel: viewModel)
                     }
                 }
                 .id(viewModel.selectedSection)
@@ -290,7 +306,7 @@ struct ContentView: View {
                 }
             }
 
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 190), spacing: 14)], spacing: 14) {
+            HStack(spacing: 14) {
                 metricCard(title: t("Toplam aday alan"), value: viewModel.reclaimableBytes.formattedBytes, subtitle: t("Gercek tarama sonucu"))
                 metricCard(title: t("Secili kategori"), value: "\(viewModel.selectedCount)", subtitle: t("Temizlik planindaki moduller"))
                 metricCard(title: t("Saglik skoru"), value: "\(viewModel.healthScore)", subtitle: t("Bos alan ve risk dengesi"))
@@ -929,7 +945,7 @@ struct ContentView: View {
     }
 }
 
-private struct GlassCard<Content: View>: View {
+struct GlassCard<Content: View>: View {
     @ViewBuilder var content: Content
 
     var body: some View {
@@ -944,7 +960,7 @@ private struct GlassCard<Content: View>: View {
     }
 }
 
-private struct PulsingDot: View {
+struct PulsingDot: View {
     var active: Bool
     var color: Color
     @State private var pulse = false

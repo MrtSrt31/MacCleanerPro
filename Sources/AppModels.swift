@@ -6,6 +6,10 @@ enum AppSection: String, CaseIterable, Identifiable {
     case plan
     case automation
     case reports
+    case monitor
+    case diskAnalyzer
+    case uninstaller
+    case maintenance
 
     var id: Self { self }
 
@@ -19,6 +23,14 @@ enum AppSection: String, CaseIterable, Identifiable {
             return L10n.tr("Otomasyon")
         case .reports:
             return L10n.tr("Raporlar")
+        case .monitor:
+            return L10n.tr("Canli Izleme")
+        case .diskAnalyzer:
+            return L10n.tr("Disk Analizi")
+        case .uninstaller:
+            return L10n.tr("Uygulama Kaldirici")
+        case .maintenance:
+            return L10n.tr("Bakim ve Optimizasyon")
         }
     }
 
@@ -32,6 +44,14 @@ enum AppSection: String, CaseIterable, Identifiable {
             return L10n.tr("Bakım ritmini ve disk eşiği tercihlerini yerel ayarlar olarak saklar.")
         case .reports:
             return L10n.tr("Tarama özetini dışa aktarır ve çalışma geçmişini okunur rapor kartlarına dönüştürür.")
+        case .monitor:
+            return L10n.tr("CPU, bellek, disk ve ag kullanimini gercek zamanli gosterir.")
+        case .diskAnalyzer:
+            return L10n.tr("Ana klasorlerin gercek disk kullanimini buyukten kucuge siralar.")
+        case .uninstaller:
+            return L10n.tr("Yukleli uygulamalari ve iliskili dosyalarini birlikte kaldirir.")
+        case .maintenance:
+            return L10n.tr("Sistem bakim ve optimizasyon araclarini calistirir.")
         }
     }
 
@@ -45,6 +65,14 @@ enum AppSection: String, CaseIterable, Identifiable {
             return "clock.arrow.circlepath"
         case .reports:
             return "chart.bar.doc.horizontal"
+        case .monitor:
+            return "waveform.path.ecg"
+        case .diskAnalyzer:
+            return "chart.pie.fill"
+        case .uninstaller:
+            return "rectangle.stack.badge.minus"
+        case .maintenance:
+            return "wrench.and.screwdriver.fill"
         }
     }
 }
@@ -104,6 +132,7 @@ enum CleanupCategory: String, CaseIterable, Identifiable, Codable {
     case largeOldFiles
     case appLeftovers
     case photoJunk
+    case projectArtifacts
 
     var id: Self { self }
 
@@ -141,6 +170,8 @@ enum CleanupCategory: String, CaseIterable, Identifiable, Codable {
             return L10n.tr("Kaldirilmis Uygulama Artiklari")
         case .photoJunk:
             return L10n.tr("Fotograf Kutuphanesi Onbellegi")
+        case .projectArtifacts:
+            return L10n.tr("Proje Derleme Artiklari")
         }
     }
 
@@ -178,6 +209,8 @@ enum CleanupCategory: String, CaseIterable, Identifiable, Codable {
             return L10n.tr("Artik yuklu olmayan uygulamalara ait Library klasorlerinde kalan veriler; secmeden once gozden gecirin.")
         case .photoJunk:
             return L10n.tr("Photos kutuphanesindeki turetilmis onizleme ve onbellek verisi; bu alan bilgi amaclidir, dogrudan silinmez.")
+        case .projectArtifacts:
+            return L10n.tr("node_modules, .build, target, Pods, dist, .next, .gradle gibi yeniden olusturulabilir proje derleme klasorleri.")
         }
     }
 
@@ -215,6 +248,8 @@ enum CleanupCategory: String, CaseIterable, Identifiable, Codable {
             return "folder.badge.questionmark"
         case .photoJunk:
             return "photo.stack"
+        case .projectArtifacts:
+            return "cube.box.fill"
         }
     }
 
@@ -222,7 +257,7 @@ enum CleanupCategory: String, CaseIterable, Identifiable, Codable {
         switch self {
         case .userCaches, .logArchives, .derivedData, .deviceSupport, .systemJunk, .browserCaches, .packageCaches:
             return .safe
-        case .mailDownloads, .iosBackups, .largeDownloads, .trashBin, .xcodeArchives, .largeOldFiles, .appLeftovers:
+        case .mailDownloads, .iosBackups, .largeDownloads, .trashBin, .xcodeArchives, .largeOldFiles, .appLeftovers, .projectArtifacts:
             return .review
         case .docker, .photoJunk:
             return .manual
@@ -266,6 +301,8 @@ enum CleanupCategory: String, CaseIterable, Identifiable, Codable {
             return L10n.tr("Sahipsiz uygulama artigi bulunamadi.")
         case .photoJunk:
             return L10n.tr("Photos kutuphanesi bulunamadi veya onbellek verisi yok.")
+        case .projectArtifacts:
+            return L10n.tr("Proje derleme artigi bulunamadi.")
         default:
             return L10n.tr("Bu kategori icin temizlenebilir icerik bulunmadi.")
         }
