@@ -75,7 +75,7 @@ struct ContentView: View {
             GlassCard {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack(spacing: 12) {
-                        AppLogo(size: 46, cornerRadius: 14)
+                        AppLogo(size: 46)
                             .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
 
                         VStack(alignment: .leading, spacing: 2) {

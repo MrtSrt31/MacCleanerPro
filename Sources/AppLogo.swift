@@ -31,17 +31,26 @@ enum AppLogoAsset {
 
 /// Renders the MacCleanerPro logo, automatically switching between the
 /// dark- and white-background artwork to match the current color scheme.
+///
+/// The corner radius follows Apple's macOS app-icon ratio (~22.37% of the
+/// icon's size, the same curvature used by Finder's icon) unless overridden,
+/// so the clip lines up cleanly with the rounded artwork instead of cutting
+/// across it at a mismatched angle.
 struct AppLogo: View {
     var size: CGFloat = 46
-    var cornerRadius: CGFloat = 12
+    var cornerRadius: CGFloat?
 
     @Environment(\.colorScheme) private var colorScheme
+
+    private var resolvedCornerRadius: CGFloat {
+        cornerRadius ?? size * 0.2237
+    }
 
     var body: some View {
         Image(nsImage: AppLogoAsset.image(for: colorScheme))
             .resizable()
             .aspectRatio(contentMode: .fit)
             .frame(width: size, height: size)
-            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: resolvedCornerRadius, style: .continuous))
     }
 }

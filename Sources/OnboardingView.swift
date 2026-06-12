@@ -55,7 +55,7 @@ struct OnboardingView: View {
 
     private var welcomeStep: some View {
         VStack(spacing: 28) {
-            AppLogo(size: 96, cornerRadius: 24)
+            AppLogo(size: 96)
                 .shadow(color: primaryTeal.opacity(0.35), radius: 16, y: 6)
 
             VStack(spacing: 10) {
