@@ -75,14 +75,8 @@ struct ContentView: View {
             GlassCard {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack(spacing: 12) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                                .fill(LinearGradient(colors: [primaryTeal, copper], startPoint: .topLeading, endPoint: .bottomTrailing))
-                            Text("MC")
-                                .font(.system(size: 18, weight: .heavy, design: .rounded))
-                                .foregroundStyle(.white)
-                        }
-                        .frame(width: 46, height: 46)
+                        AppLogo(size: 46, cornerRadius: 14)
+                            .shadow(color: .black.opacity(0.12), radius: 6, y: 3)
 
                         VStack(alignment: .leading, spacing: 2) {
                             Text("MacCleanerPro")

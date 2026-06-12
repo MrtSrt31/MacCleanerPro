@@ -55,15 +55,8 @@ struct OnboardingView: View {
 
     private var welcomeStep: some View {
         VStack(spacing: 28) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 32, style: .continuous)
-                    .fill(LinearGradient(colors: [primaryTeal, copper], startPoint: .topLeading, endPoint: .bottomTrailing))
-                    .frame(width: 96, height: 96)
-                    .shadow(color: primaryTeal.opacity(0.35), radius: 16, y: 6)
-                Text("MC")
-                    .font(.system(size: 36, weight: .heavy, design: .rounded))
-                    .foregroundStyle(.white)
-            }
+            AppLogo(size: 96, cornerRadius: 24)
+                .shadow(color: primaryTeal.opacity(0.35), radius: 16, y: 6)
 
             VStack(spacing: 10) {
                 Text("MacCleanerPro")

@@ -16,7 +16,10 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "MacCleanerPro",
-            path: "Sources"
+            path: "Sources",
+            resources: [
+                .copy("Resources/Logo"),
+            ]
         ),
     ]
 )
